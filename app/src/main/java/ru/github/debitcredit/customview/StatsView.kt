@@ -25,17 +25,38 @@ class StatsView @JvmOverloads constructor(
     private var valueAnimator: ValueAnimator? = null
     private var currentRotation = 0f
 
+    // Флаг, определяющий режим отображения (большой или маленький)
+    var isSmallMode = false
+        set(value) {
+            field = value
+            if (value) {
+                // Для маленького режима делаем линии тоньше и шрифт меньше
+                lineWidth = dp(12f).toFloat()
+                fontSize = dp(16f).toFloat()
+            } else {
+                // Для большого режима возвращаем нормальные размеры
+                lineWidth = dp(24f).toFloat()
+                fontSize = dp(32f).toFloat()
+            }
+            updatePaintAndText()
+            requestLayout()
+        }
+
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = lineWidth
         strokeCap = Paint.Cap.ROUND
     }
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
-        textSize = fontSize
         color = Color.WHITE
+    }
+
+    private val smallTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        textAlign = Paint.Align.CENTER
+        color = Color.parseColor("#AAAAAA")
     }
 
     var data: List<CategoryData> = emptyList()
@@ -52,6 +73,13 @@ class StatsView @JvmOverloads constructor(
 
     init {
         setLayerType(LAYER_TYPE_SOFTWARE, null)
+        updatePaintAndText()
+    }
+
+    private fun updatePaintAndText() {
+        paint.strokeWidth = lineWidth
+        textPaint.textSize = fontSize
+        smallTextPaint.textSize = fontSize * 0.5f
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -90,38 +118,67 @@ class StatsView @JvmOverloads constructor(
             startAngle += sweepAngle
         }
 
-        // Рисуем текст в центре
-        val totalText = String.format("%.0f", total)
-        textPaint.textSize = fontSize
-        textPaint.color = Color.WHITE
-        canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 4, textPaint)
+        if (isSmallMode) {
+            // Маленький режим: показываем сумму под графиком
+            val totalText = String.format("%.0f", total)
 
-        // Рисуем маленькую подпись
-        if (totalText.isEmpty()) {
-        textPaint.textSize = fontSize * 0.4f
-        textPaint.color = Color.parseColor("#AAAAAA")
-        canvas.drawText("всего", center.x, center.y - fontSize / 4, textPaint)
-        }
+            // Текст суммы (крупнее)
+            textPaint.textSize = fontSize
+            textPaint.color = Color.WHITE
+            canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 3, textPaint)
 
-        // Рисуем точку-индикатор сверху
-        if (data.isNotEmpty()) {
-            val dotRadius = lineWidth * 0.5f  // Увеличенная точка
-            val dotAngle = Math.toRadians((-90f + currentRotation).toDouble())
-            val dotX = center.x + radius * cos(dotAngle).toFloat()
-            val dotY = center.y + radius * sin(dotAngle).toFloat()
+            // Рисуем точку-индикатор сверху (уменьшенную)
+            if (data.isNotEmpty()) {
+                val dotRadius = lineWidth * 0.5f
+                val dotAngle = Math.toRadians((-90f + currentRotation).toDouble())
+                val dotX = center.x + radius * cos(dotAngle).toFloat()
+                val dotY = center.y + radius * sin(dotAngle).toFloat()
 
-            val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = data.firstOrNull()?.color ?: Color.WHITE
-                style = Paint.Style.FILL
+                val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = data.firstOrNull()?.color ?: Color.WHITE
+                    style = Paint.Style.FILL
+                }
+                canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
             }
-            canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
+        } else {
+            // Большой режим: показываем сумму в центре и подпись "всего"
+            val totalText = String.format("%.0f", total)
+            textPaint.textSize = fontSize
+            textPaint.color = Color.WHITE
+            canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 4, textPaint)
+
+            // Рисуем маленькую подпись "всего"
+//            smallTextPaint.textSize = fontSize * 0.4f
+//            smallTextPaint.color = Color.parseColor("#AAAAAA")
+//            canvas.drawText("всего", center.x, center.y - fontSize / 4, smallTextPaint)
+
+            // Рисуем точку-индикатор сверху (нормальную)
+            if (data.isNotEmpty()) {
+                val dotRadius = lineWidth * 0.5f
+                val dotAngle = Math.toRadians((-90f + currentRotation).toDouble())
+                val dotX = center.x + radius * cos(dotAngle).toFloat()
+                val dotY = center.y + radius * sin(dotAngle).toFloat()
+
+                val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = data.firstOrNull()?.color ?: Color.WHITE
+                    style = Paint.Style.FILL
+                }
+                canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
+            }
         }
     }
 
-    private fun startAnimation() {
+    fun startAnimation() {
+        // Полностью останавливаем предыдущую анимацию
         valueAnimator?.cancel()
+        valueAnimator = null
+
+        if (visibility != View.VISIBLE) return
+
+        // Сбрасываем прогресс перед началом
         progress = 0f
         currentRotation = 0f
+        invalidate()  // Принудительно перерисовываем сброшенное состояние
 
         valueAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 1500
@@ -133,6 +190,11 @@ class StatsView @JvmOverloads constructor(
             }
             start()
         }
+    }
+
+    fun stopAnimation() {
+        valueAnimator?.cancel()
+        valueAnimator = null
     }
 
     private fun lightenColor(color: Int): Int {

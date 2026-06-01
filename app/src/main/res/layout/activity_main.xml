@@ -2,74 +2,63 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#1E1E2E">
 
-    <LinearLayout
-        android:id="@+id/topLayout"
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="32dp"
-        android:orientation="vertical"
+        android:fillViewport="true"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/categoryRecyclerView"
-        app:layout_constraintHeight_percent="0.45">
-
-        <ru.github.debitcredit.customview.StatsView
-            android:id="@+id/statsView"
-            android:layout_width="300dp"
-            android:layout_height="300dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"/>
+        app:layout_constraintBottom_toTopOf="@+id/bottomButtonsLayout">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:orientation="horizontal"
-            android:weightSum="6">
+            android:orientation="vertical"
+            android:paddingTop="32dp"
+            android:paddingBottom="16dp"
+            android:gravity="center_horizontal">
 
-            <Button
-                android:id="@+id/dayButton"
-                style="@style/TimeButton"
-                android:text="День"
-                android:layout_weight="1"/>
-            <Button
-                android:id="@+id/weekButton"
-                style="@style/TimeButton"
-                android:text="Неделя"
-                android:layout_weight="1"/>
-            <Button
-                android:id="@+id/monthButton"
-                style="@style/TimeButton"
-                android:text="Месяц"
-                android:layout_weight="1"/>
-            <Button
-                android:id="@+id/quarterButton"
-                style="@style/TimeButton"
-                android:text="Квартал"
-                android:layout_weight="1"/>
-            <Button
-                android:id="@+id/yearButton"
-                style="@style/TimeButton"
-                android:text="Год"
-                android:layout_weight="1"/>
-            <Button
-                android:id="@+id/allButton"
-                style="@style/TimeButton"
-                android:text="Общее"
-                android:layout_weight="1"/>
+            <!-- Контейнер для большого StatsView -->
+            <FrameLayout
+                android:id="@+id/statsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center">
+
+                <ru.github.debitcredit.customview.StatsView
+                    android:id="@+id/statsView"
+                    android:layout_width="300dp"
+                    android:layout_height="300dp" />
+
+            </FrameLayout>
+
+            <!-- Контейнер для маленьких StatsView (изначально скрыт) -->
+            <FrameLayout
+                android:id="@+id/detailContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:padding="8dp">
+
+                <include layout="@layout/scene_stats_detail" />
+
+            </FrameLayout>
+
         </LinearLayout>
-    </LinearLayout>
+    </ScrollView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/categoryRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginHorizontal="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/topLayout"
+        app:layout_constraintTop_toBottomOf="@+id/scrollView"
         app:layout_constraintBottom_toTopOf="@+id/bottomButtonsLayout"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:spanCount="2"/>
@@ -95,8 +84,7 @@
                 android:layout_height="48dp"
                 android:src="@android:drawable/ic_menu_delete"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Удалить категорию"
-                />
+                android:contentDescription="Удалить категорию"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -117,8 +105,7 @@
                 android:layout_height="48dp"
                 android:src="@android:drawable/stat_sys_upload"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Доход"
-                />
+                android:contentDescription="Доход"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -139,8 +126,7 @@
                 android:layout_height="48dp"
                 android:src="@android:drawable/ic_input_add"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Добавить категорию"
-                />
+                android:contentDescription="Добавить категорию"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
