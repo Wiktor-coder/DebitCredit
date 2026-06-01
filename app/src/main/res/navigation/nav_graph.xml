@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="ru.github.debitcredit.MainFragment"
+        android:label="DebitCredit" >
+        <action
+            android:id="@+id/action_mainFragment_to_categoryEditFragment"
+            app:destination="@id/categoryEditFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/categoryEditFragment"
+        android:name="ru.github.debitcredit.activity.CategoryEditFragment"
+        android:label="Редактирование категории">
+        <argument
+            android:name="category_name"
+            app:argType="string" />
+        <argument
+            android:name="category_color"
+            app:argType="integer" />
+        <argument
+            android:name="category_amount"
+            app:argType="float" />
+    </fragment>
+
+</navigation>
