@@ -1,0 +1,88 @@
+/build
+
+# Gradle
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+# Built application
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+bin/
+gen/
+out/
+release/
+build/
+
+# Android Studio
+*.iml
+.idea/
+.idea/caches/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/vcs.xml
+.cxx/
+.externalNativeBuild/
+.navigation/
+captures/
+
+# Keystore (важно!)
+*.jks
+*.keystore
+key.properties
+keystore.properties
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
+
+# Crashlytics
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Logs
+*.log
+logs/
+
+# Testing
+/test-results/
+test-output/
+test-logs/
+
+# Performance
+/perf-data/
+/perfetto-traces/
+
+# Kotlin
+.kotlin/
+build-kotlin-*/
+
+# Version control
+.vscode/
+.metadata/
+.remote-packages/
+
+# Packaging
+/*.zip
+/*.tar.gz
+
+# Other
+*.pid
+*.seed
+*.pid.lock

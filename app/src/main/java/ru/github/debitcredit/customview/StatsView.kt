@@ -1,0 +1,146 @@
+package ru.github.debitcredit.customview
+
+import android.animation.ValueAnimator
+import android.content.Context
+import android.graphics.*
+import android.util.AttributeSet
+import android.view.View
+import android.view.animation.LinearInterpolator
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
+
+class StatsView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : View(context, attrs, defStyleAttr) {
+
+    private var radius = 0f
+    private var center = PointF(0f, 0f)
+    private var oval = RectF(0f, 0f, 0f, 0f)
+    private var lineWidth = dp(24f).toFloat()
+    private var fontSize = dp(32f).toFloat()
+    private var progress = 0f
+    private var valueAnimator: ValueAnimator? = null
+    private var currentRotation = 0f
+
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = lineWidth
+        strokeCap = Paint.Cap.ROUND
+    }
+
+    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        textAlign = Paint.Align.CENTER
+        textSize = fontSize
+        color = Color.WHITE
+    }
+
+    var data: List<CategoryData> = emptyList()
+        set(value) {
+            field = value
+            startAnimation()
+        }
+
+    data class CategoryData(
+        val name: String,
+        val amount: Float,
+        val color: Int
+    )
+
+    init {
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        radius = min(w, h) / 2f - lineWidth / 2
+        center = PointF(w / 2f, h / 2f)
+        oval = RectF(
+            center.x - radius,
+            center.y - radius,
+            center.x + radius,
+            center.y + radius
+        )
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        if (data.isEmpty()) return
+
+        val total = data.sumOf { it.amount.toDouble() }.toFloat()
+        if (total == 0f) return
+
+        var startAngle = -90f + currentRotation
+
+        // Рисуем сегменты
+        for ((index, category) in data.withIndex()) {
+            val sweepAngle = 360f * (category.amount / total) * progress
+
+            val shader = SweepGradient(
+                center.x, center.y,
+                intArrayOf(category.color, lightenColor(category.color)),
+                null
+            )
+            paint.shader = shader
+            paint.color = category.color
+
+            canvas.drawArc(oval, startAngle, sweepAngle, false, paint)
+
+            startAngle += sweepAngle
+        }
+
+        // Рисуем текст в центре
+        val totalText = String.format("%.0f", total)
+        textPaint.textSize = fontSize
+        textPaint.color = Color.WHITE
+        canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 4, textPaint)
+
+        // Рисуем маленькую подпись
+        if (totalText.isEmpty()) {
+        textPaint.textSize = fontSize * 0.4f
+        textPaint.color = Color.parseColor("#AAAAAA")
+        canvas.drawText("всего", center.x, center.y - fontSize / 4, textPaint)
+        }
+
+        // Рисуем точку-индикатор сверху
+        if (data.isNotEmpty()) {
+            val dotRadius = lineWidth * 0.5f  // Увеличенная точка
+            val dotAngle = Math.toRadians((-90f + currentRotation).toDouble())
+            val dotX = center.x + radius * cos(dotAngle).toFloat()
+            val dotY = center.y + radius * sin(dotAngle).toFloat()
+
+            val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = data.firstOrNull()?.color ?: Color.WHITE
+                style = Paint.Style.FILL
+            }
+            canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
+        }
+    }
+
+    private fun startAnimation() {
+        valueAnimator?.cancel()
+        progress = 0f
+        currentRotation = 0f
+
+        valueAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 1500
+            interpolator = LinearInterpolator()
+            addUpdateListener { animation ->
+                progress = animation.animatedValue as Float
+                currentRotation = progress * 90f
+                invalidate()
+            }
+            start()
+        }
+    }
+
+    private fun lightenColor(color: Int): Int {
+        val hsv = FloatArray(3)
+        Color.colorToHSV(color, hsv)
+        hsv[2] = min(1f, hsv[2] * 1.2f)
+        return Color.HSVToColor(hsv)
+    }
+
+    private fun dp(value: Float): Int = (context.resources.displayMetrics.density * value).toInt()
+}
