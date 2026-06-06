@@ -1,4 +1,4 @@
-package ru.github.debitcredit
+package ru.github.debitcredit.ui.main
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -6,6 +6,7 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,24 +15,31 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.cardview.widget.CardView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
+import ru.github.debitcredit.R
 import ru.github.debitcredit.adapter.CategoryAdapter
 import ru.github.debitcredit.customview.StatsView
-import ru.github.debitcredit.data.Category
+import ru.github.debitcredit.data.model.CategoryEntity
+import ru.github.debitcredit.viewmodel.MainViewModel
 
 class MainFragment : Fragment() {
-
+    private val viewModel: MainViewModel by viewModels()
     private lateinit var statsView: StatsView
     private lateinit var statsContainer: ViewGroup
     private lateinit var detailContainer: ViewGroup
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var categoryAdapter: CategoryAdapter
     private val predefinedCategories = listOf("Продукты", "Развлечения", "Иное")
-    private var categories = mutableListOf<Category>()
+    private var categories = mutableListOf<CategoryEntity>()
     private var isDetailMode = false
 
     override fun onCreateView(
@@ -46,22 +54,32 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initializeViews(view)
-        setupSampleData()
+        observeCategories()  // наблюдаем за изменениями в БД
+        initDatabase()
         setupClickListeners(view)
         setupStatsViewClick()
         setupPredefinedCategories(view)
 
         // Слушаем результат из фрагмента редактирования
-        parentFragmentManager.setFragmentResultListener("category_update", viewLifecycleOwner) { _, bundle ->
+        parentFragmentManager.setFragmentResultListener(
+            "category_update",
+            viewLifecycleOwner
+        ) { _, bundle ->
             val categoryName = bundle.getString("category_name") ?: return@setFragmentResultListener
             val newAmount = bundle.getFloat("new_amount")
-            updateCategoryAmount(categoryName, newAmount)
+
+            // Обновляем через ViewModel
+            val category = categories.find { it.name == categoryName }
+            category?.let {
+                val updatedCategory = it.copy(amount = newAmount)
+                viewModel.updateCategory(updatedCategory)
+            }
         }
 
         // Обработка кнопки Back
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
-            object : androidx.activity.OnBackPressedCallback(true) {
+            object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     if (isDetailMode) {
                         collapseToSingleMode()
@@ -74,6 +92,34 @@ class MainFragment : Fragment() {
         )
     }
 
+    // Наблюдаем за категориями из базы данных
+    private fun observeCategories() {
+        lifecycleScope.launch {
+            viewModel.categories.collect { categoryList ->
+                categories.clear()
+                categories.addAll(categoryList)
+                categoryAdapter.updateCategories(categories)
+                updateStatsView()
+
+                // Обновляем предустановленные категории в UI
+                predefinedCategories.forEach { catName ->
+                    val category = categories.find { it.name == catName }
+                    category?.let {
+                        updatePredefinedCategoryAmount(catName, it.amount)
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("MainFragment", "=== onResume ===")
+
+        // Просто обновляем UI без лишних операций
+        updateStatsView()
+    }
+
     private fun initializeViews(view: View) {
         statsView = view.findViewById(R.id.statsView)
         statsContainer = view.findViewById(R.id.statsContainer)
@@ -82,7 +128,11 @@ class MainFragment : Fragment() {
 
         categoryRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         categoryAdapter = CategoryAdapter(categories) { category ->
-            Toast.makeText(requireContext(), "Выбрана категория: ${category.name}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "Выбрана категория: ${category.name}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
         categoryRecyclerView.adapter = categoryAdapter
 
@@ -100,15 +150,14 @@ class MainFragment : Fragment() {
             categoriesContainer.addView(categoryView)
 
             categoryView.setOnClickListener {
-                val currentAmount = categories.find { it.name == categoryName }?.amount ?: 0.0
+                val currentAmount = categories.find { it.name == categoryName }?.amount ?: 0f
                 val categoryColor = getColorForCategory(categoryName)
 
-                // Используем Navigation Component для перехода
-                val bundle = bundleOf(
-                    "category_name" to categoryName,
-                    "category_color" to categoryColor,
-                    "category_amount" to currentAmount.toFloat()
-                )
+                val bundle = Bundle().apply {
+                    putString ("category_name", categoryName)
+                    putInt ("category_color", categoryColor)
+                    putFloat ("category_amount", currentAmount)
+                }
                 view.findNavController().navigate(R.id.categoryEditFragment, bundle)
             }
         }
@@ -118,13 +167,13 @@ class MainFragment : Fragment() {
         val view = layoutInflater.inflate(R.layout.item_category_predefined, null)
         val nameText = view.findViewById<TextView>(R.id.categoryNameText)
         val amountText = view.findViewById<TextView>(R.id.categoryAmountText)
-        val cardView = view.findViewById<androidx.cardview.widget.CardView>(R.id.categoryCard)
+        val cardView = view.findViewById<CardView>(R.id.categoryCard)
 
         nameText.text = categoryName
         cardView.setCardBackgroundColor(getColorForCategory(categoryName))
 
         val category = categories.find { it.name == categoryName }
-        amountText.text = String.format("%.2f ₽", category?.amount ?: 0.0)
+        amountText.text = String.format("%.2f ₽", category?.amount ?: 0f)
 
         return view
     }
@@ -137,24 +186,10 @@ class MainFragment : Fragment() {
         }
     }
 
-    fun updateCategoryAmount(categoryName: String, newAmount: Float) {
-        val index = categories.indexOfFirst { it.name == categoryName }
-        if (index != -1) {
-            val updatedCategory = Category(
-                id = categories[index].id,
-                name = categories[index].name,
-                amount = newAmount,
-                color = categories[index].color
-            )
-            categories[index] = updatedCategory
-            categoryAdapter.updateCategories(categories)
-            updateStatsView()
-
-            updatePredefinedCategoryAmount(categoryName, newAmount)
-        }
-    }
-
     private fun updatePredefinedCategoryAmount(categoryName: String, newAmount: Float) {
+        Log.d("MainFragment", "=== updatePredefinedCategoryAmount ===")
+        Log.d("MainFragment", "Updating $categoryName to $newAmount")
+
         val view = requireView()
         val categoriesContainer = view.findViewById<LinearLayout>(R.id.predefinedCategoriesContainer)
         for (i in 0 until categoriesContainer.childCount) {
@@ -163,6 +198,7 @@ class MainFragment : Fragment() {
             if (nameText.text == categoryName) {
                 val amountText = child.findViewById<TextView>(R.id.categoryAmountText)
                 amountText.text = String.format("%.2f ₽", newAmount)
+                Log.d("MainFragment", "  Updated UI for $categoryName")
                 break
             }
         }
@@ -281,35 +317,25 @@ class MainFragment : Fragment() {
         val total = categories.sumOf { it.amount.toDouble() }.toFloat()
         if (total == 0f) return
 
-        val dayData = listOf(
-            StatsView.CategoryData("Продукты", total * 0.15f, Color.parseColor("#FF6B6B")),
-            StatsView.CategoryData("Развлечения", total * 0.25f, Color.parseColor("#4ECDC4")),
-            StatsView.CategoryData("Транспорт", total * 0.60f, Color.parseColor("#45B7D1"))
-        )
+        val dayData = categories.map { category ->
+            StatsView.CategoryData(category.name, category.amount * 0.2f, category.color)
+        }
 
-        val weekData = listOf(
-            StatsView.CategoryData("Продукты", total * 0.35f, Color.parseColor("#FF6B6B")),
-            StatsView.CategoryData("Развлечения", total * 0.20f, Color.parseColor("#4ECDC4")),
-            StatsView.CategoryData("Транспорт", total * 0.15f, Color.parseColor("#45B7D1")),
-            StatsView.CategoryData("Кафе", total * 0.30f, Color.parseColor("#96CEB4"))
-        )
+        val weekData = categories.map { category ->
+            StatsView.CategoryData(category.name, category.amount * 0.35f, category.color)
+        }
 
         val monthData = categories.map { category ->
             StatsView.CategoryData(category.name, category.amount, category.color)
         }
 
-        val quarterData = listOf(
-            StatsView.CategoryData("Продукты", total * 0.40f, Color.parseColor("#FF6B6B")),
-            StatsView.CategoryData("Развлечения", total * 0.30f, Color.parseColor("#4ECDC4")),
-            StatsView.CategoryData("Транспорт", total * 0.20f, Color.parseColor("#45B7D1")),
-            StatsView.CategoryData("Кафе", total * 0.10f, Color.parseColor("#96CEB4"))
-        )
+        val quarterData = categories.map { category ->
+            StatsView.CategoryData(category.name, category.amount * 0.8f, category.color)
+        }
 
-        val yearData = listOf(
-            StatsView.CategoryData("Продукты", total * 0.50f, Color.parseColor("#FF6B6B")),
-            StatsView.CategoryData("Развлечения", total * 0.30f, Color.parseColor("#4ECDC4")),
-            StatsView.CategoryData("Транспорт", total * 0.20f, Color.parseColor("#45B7D1"))
-        )
+        val yearData = categories.map { category ->
+            StatsView.CategoryData(category.name, category.amount * 1.2f, category.color)
+        }
 
         val allData = categories.map { category ->
             StatsView.CategoryData(category.name, category.amount, category.color)
@@ -349,19 +375,24 @@ class MainFragment : Fragment() {
         detailContainer.requestLayout()
     }
 
-    private fun setupSampleData() {
-        categories.addAll(listOf(
-            Category(1, "Продукты", 2500f, Color.parseColor("#FF6B6B")),
-            Category(2, "Развлечения", 1200f, Color.parseColor("#4ECDC4")),
-            Category(3, "Транспорт", 800f, Color.parseColor("#45B7D1")),
-            Category(4, "Кафе", 1500f, Color.parseColor("#96CEB4"))
-        ))
-        categoryAdapter.updateCategories(categories)
-        updateStatsView()
+    // используем lifecycleScope вместо viewModelScope
+    private fun initDatabase() {
+        lifecycleScope.launch {
+            if (viewModel.categories.value.isEmpty()) {
+                val defaultCategories = listOf(
+                    CategoryEntity(0, "Продукты", 2500f, Color.parseColor("#FF6B6B")),
+                    CategoryEntity(0, "Развлечения", 1200f, Color.parseColor("#4ECDC4")),
+                    CategoryEntity(0, "Иное", 800f, Color.parseColor("#96CEB4"))
+                )
+                defaultCategories.forEach { viewModel.addCategory(it) }
+            }
+        }
     }
 
     private fun updateStatsView() {
+        Log.d("MainFragment", "=== updateStatsView ===")
         val statsData = categories.map { category ->
+            Log.d("MainFragment", "  ${category.name}: ${category.amount}")
             StatsView.CategoryData(
                 name = category.name,
                 amount = category.amount,
@@ -375,16 +406,15 @@ class MainFragment : Fragment() {
     private fun setupClickListeners(view: View) {
         view.findViewById<ImageButton>(R.id.deleteCategoryButton).setOnClickListener {
             if (categories.isNotEmpty()) {
-                categories.removeAt(categories.size - 1)
-                categoryAdapter.updateCategories(categories)
-                updateStatsView()
-
+                val categoryToDelete = categories.last()
+                viewModel.deleteCategory(categoryToDelete)  // ← удаляем через ViewModel
                 if (isDetailMode) {
                     setupDetailStatsData()
                 }
                 Toast.makeText(requireContext(), "Категория удалена", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(requireContext(), "Нет категорий для удаления", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Нет категорий для удаления", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
 
@@ -397,22 +427,20 @@ class MainFragment : Fragment() {
                 Color.parseColor("#A29BFE"),
                 Color.parseColor("#FDCB6E")
             )
-            val newCategory = Category(
-                newId,
+            val newCategoryEntity = CategoryEntity(
+                0,  // id = 0 для автогенерации
                 "Категория ${newId}",
                 500f,
                 colors[newId % colors.size]
             )
-            categories.add(newCategory)
-            categoryAdapter.updateCategories(categories)
-            updateStatsView()
+            viewModel.addCategory(newCategoryEntity)  // ← добавляем через ViewModel
 
             if (isDetailMode) {
                 setupDetailStatsData()
             }
             Toast.makeText(
                 requireContext(),
-                "Добавлена: ${newCategory.name}",
+                "Добавлена: ${newCategoryEntity.name}",
                 Toast.LENGTH_SHORT
             ).show()
         }

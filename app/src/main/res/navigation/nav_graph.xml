@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="ru.github.debitcredit.MainFragment"
+        android:name="ru.github.debitcredit.ui.main.MainFragment"
         android:label="DebitCredit" >
         <action
             android:id="@+id/action_mainFragment_to_categoryEditFragment"
@@ -15,7 +15,7 @@
 
     <fragment
         android:id="@+id/categoryEditFragment"
-        android:name="ru.github.debitcredit.activity.CategoryEditFragment"
+        android:name="ru.github.debitcredit.ui.edit.CategoryEditFragment"
         android:label="Редактирование категории">
         <argument
             android:name="category_name"

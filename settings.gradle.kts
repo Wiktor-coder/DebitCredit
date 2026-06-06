@@ -20,6 +20,8 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") } // ЭТО ВАЖНО!
+
+        gradlePluginPortal() // KSP плагин из Gradle Plugin Portal
     }
 }
 

@@ -1,6 +1,9 @@
-package ru.github.debitcredit.activity
+package ru.github.debitcredit.ui.edit
 
+import android.app.Activity
+import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +14,6 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.os.bundleOf
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -20,6 +22,7 @@ import ru.github.debitcredit.R
 class CategoryEditFragment : Fragment() {
 
     private lateinit var categoryName: String
+    private var originalAmount: Float = 0f
     private var currentAmount: Float = 0f
     private lateinit var amountEditText: EditText
 
@@ -27,7 +30,12 @@ class CategoryEditFragment : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             categoryName = it.getString("category_name") ?: "Категория"
+            originalAmount = it.getFloat("category_amount", 0f)
             currentAmount = it.getFloat("category_amount", 0f)
+
+            // ЛОГ 1: При создании фрагмента
+            Log.d("CategoryEdit", "=== onCreate ===")
+            Log.d("CategoryEdit", "Category: $categoryName, Original amount: $originalAmount")
         }
     }
 
@@ -53,8 +61,10 @@ class CategoryEditFragment : Fragment() {
         amountEditText.setText(String.format("%.2f", currentAmount))
 
         val iconContainer = view.findViewById<View>(R.id.iconContainer)
-        val categoryColor = arguments?.getInt("category_color", android.graphics.Color.parseColor("#FF6B6B"))
-            ?: android.graphics.Color.parseColor("#FF6B6B")
+        val categoryColor = arguments?.getInt(
+            "category_color",
+            Color.parseColor("#FF6B6B")
+        ) ?: Color.parseColor("#FF6B6B")
         iconContainer.setBackgroundColor(categoryColor)
 
         val categoryIcon = view.findViewById<ImageView>(R.id.categoryIcon)
@@ -71,6 +81,8 @@ class CategoryEditFragment : Fragment() {
     private fun setupTextWatcher() {
         amountEditText.doOnTextChanged { text, _, _, _ ->
             currentAmount = text?.toString()?.toFloatOrNull() ?: 0f
+            // ЛОГ 2: При изменении текста
+            Log.d("CategoryEdit", "Text changed: $currentAmount")
         }
     }
 
@@ -87,6 +99,9 @@ class CategoryEditFragment : Fragment() {
 
     private fun setupClickListeners(view: View) {
         view.findViewById<Button>(R.id.cancelButton).setOnClickListener {
+            // ЛОГ 3: При нажатии Отмена
+            Log.d("CategoryEdit", "=== CANCEL BUTTON ===")
+            Log.d("CategoryEdit", "No update sent, closing")
             findNavController().popBackStack()
         }
 
@@ -98,29 +113,48 @@ class CategoryEditFragment : Fragment() {
         }
 
         view.findViewById<Button>(R.id.confirmButton).setOnClickListener {
-            val newAmount = amountEditText.text.toString().toFloatOrNull() ?: 0f
+            val newAmount = amountEditText.text.toString().toFloatOrNull() ?: originalAmount
 
-            val result = Bundle().apply {
-                putString("category_name", categoryName)
-                putFloat("new_amount", newAmount)
+            // ЛОГ 4: При нажатии Подтвердить
+            Log.d("CategoryEdit", "=== CONFIRM BUTTON ===")
+            Log.d("CategoryEdit", "Category: $categoryName")
+            Log.d("CategoryEdit", "Original amount: $originalAmount")
+            Log.d("CategoryEdit", "New amount: $newAmount")
+            Log.d("CategoryEdit", "Text from EditText: ${amountEditText.text.toString()}")
+
+            if (newAmount != originalAmount) {
+                Log.d("CategoryEdit", "Sending update to MainFragment...")
+                val result = Bundle().apply {
+                    putString("category_name", categoryName)
+                    putFloat("new_amount", newAmount)
+                }
+                parentFragmentManager.setFragmentResult("category_update", result)
+            } else {
+                Log.d("CategoryEdit", "Amount unchanged, not sending update")
             }
-            parentFragmentManager.setFragmentResult("category_update", result)
 
             findNavController().popBackStack()
         }
     }
 
     private fun showKeyboard() {
-        val imm = requireContext().getSystemService(android.app.Activity.INPUT_METHOD_SERVICE)
-                as android.view.inputmethod.InputMethodManager
+        val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE)
+                as InputMethodManager
         amountEditText.post {
             imm.showSoftInput(amountEditText, 0)
         }
     }
 
     private fun hideKeyboard() {
-        val imm = requireContext().getSystemService(android.app.Activity.INPUT_METHOD_SERVICE)
+        val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE)
                 as InputMethodManager
         imm.hideSoftInputFromWindow(amountEditText.windowToken, 0)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        hideKeyboard()
+        // ЛОГ 5: При уничтожении фрагмента
+        Log.d("CategoryEdit", "=== onDestroyView ===")
     }
 }
