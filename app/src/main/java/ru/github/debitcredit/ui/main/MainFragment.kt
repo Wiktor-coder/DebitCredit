@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
@@ -55,7 +56,6 @@ class MainFragment : Fragment() {
 
         initializeViews(view)
         observeCategories()  // наблюдаем за изменениями в БД
-        initDatabase()
         setupClickListeners(view)
         setupStatsViewClick()
         setupPredefinedCategories(view)
@@ -108,6 +108,17 @@ class MainFragment : Fragment() {
                         updatePredefinedCategoryAmount(catName, it.amount)
                     }
                 }
+            }
+        }
+        // Наблюдаем за балансом
+        lifecycleScope.launch {
+            viewModel.balance.collect { balance ->
+                val balanceText = if (balance >= 0) {
+                    "💰 Баланс: +${String.format("%.2f", balance)} ₽"
+                } else {
+                    "📉 Баланс: ${String.format("%.2f", balance)} ₽"
+                }
+                view?.findViewById<TextView>(R.id.balanceTextView)?.text = balanceText
             }
         }
     }
@@ -375,20 +386,6 @@ class MainFragment : Fragment() {
         detailContainer.requestLayout()
     }
 
-    // используем lifecycleScope вместо viewModelScope
-    private fun initDatabase() {
-        lifecycleScope.launch {
-            if (viewModel.categories.value.isEmpty()) {
-                val defaultCategories = listOf(
-                    CategoryEntity(0, "Продукты", 2500f, Color.parseColor("#FF6B6B")),
-                    CategoryEntity(0, "Развлечения", 1200f, Color.parseColor("#4ECDC4")),
-                    CategoryEntity(0, "Иное", 800f, Color.parseColor("#96CEB4"))
-                )
-                defaultCategories.forEach { viewModel.addCategory(it) }
-            }
-        }
-    }
-
     private fun updateStatsView() {
         Log.d("MainFragment", "=== updateStatsView ===")
         val statsData = categories.map { category ->
@@ -446,11 +443,14 @@ class MainFragment : Fragment() {
         }
 
         view.findViewById<ImageButton>(R.id.incomeButton).setOnClickListener {
-            Toast.makeText(
-                requireContext(),
-                "Доход (скоро)",
-                Toast.LENGTH_SHORT
-            ).show()
+            // Открываем фрагмент редактирования в режиме дохода
+            val bundle = Bundle().apply {
+                putBoolean("is_income_mode", true)
+                putString("category_name", "Доход")
+                putInt("category_color", Color.parseColor("#4ECDC4"))
+                putFloat("category_amount", 0f)
+            }
+            findNavController().navigate(R.id.categoryEditFragment, bundle)
         }
     }
 }

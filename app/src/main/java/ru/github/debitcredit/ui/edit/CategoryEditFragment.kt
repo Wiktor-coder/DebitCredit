@@ -16,11 +16,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import ru.github.debitcredit.R
+import ru.github.debitcredit.viewmodel.MainViewModel
 
 class CategoryEditFragment : Fragment() {
-
+    private val viewModel: MainViewModel by viewModels(
+        ownerProducer = { requireActivity() }
+    )
+    private var isIncomeMode = false
     private lateinit var categoryName: String
     private var originalAmount: Float = 0f
     private var currentAmount: Float = 0f
@@ -29,13 +34,10 @@ class CategoryEditFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
+            isIncomeMode = it.getBoolean("is_income_mode", false)
             categoryName = it.getString("category_name") ?: "Категория"
             originalAmount = it.getFloat("category_amount", 0f)
             currentAmount = it.getFloat("category_amount", 0f)
-
-            // ЛОГ 1: При создании фрагмента
-            Log.d("CategoryEdit", "=== onCreate ===")
-            Log.d("CategoryEdit", "Category: $categoryName, Original amount: $originalAmount")
         }
     }
 
@@ -58,7 +60,19 @@ class CategoryEditFragment : Fragment() {
 
     private fun setupViews(view: View) {
         amountEditText = view.findViewById(R.id.amountEditText)
-        amountEditText.setText(String.format("%.2f", currentAmount))
+        amountEditText.setText("")
+        amountEditText.hint = "Сумма для добавления"
+
+        // Скрываем/показываем кнопку редактирования для режима дохода
+        val editButton = view.findViewById<Button>(R.id.editButton)
+        if (isIncomeMode) {
+            editButton.visibility = View.GONE  // ← Скрываем кнопку "Редактировать" для дохода
+        } else {
+            // Для категорий показываем текущую сумму где-то в UI
+            val currentAmountHint = view.findViewById<TextView>(R.id.currentAmountHint)
+            currentAmountHint?.text = "Текущая сумма: ${String.format("%.2f", originalAmount)} ₽"
+            currentAmountHint?.visibility = View.VISIBLE
+        }
 
         val iconContainer = view.findViewById<View>(R.id.iconContainer)
         val categoryColor = arguments?.getInt(
@@ -68,21 +82,27 @@ class CategoryEditFragment : Fragment() {
         iconContainer.setBackgroundColor(categoryColor)
 
         val categoryIcon = view.findViewById<ImageView>(R.id.categoryIcon)
-        when (categoryName) {
-            "Продукты" -> categoryIcon.setImageResource(android.R.drawable.ic_menu_agenda)
-            "Развлечения" -> categoryIcon.setImageResource(android.R.drawable.ic_menu_gallery)
-            else -> categoryIcon.setImageResource(android.R.drawable.ic_menu_edit)
-        }
-
         val titleTextView = view.findViewById<TextView>(R.id.titleTextView)
-        titleTextView.text = categoryName
+
+        if (isIncomeMode) {
+            // Для дохода - своя иконка и заголовок
+            categoryIcon.setImageResource(android.R.drawable.stat_sys_upload)
+
+            titleTextView.text = "Добавить доход"
+        } else {
+            when (categoryName) {
+                "Продукты" -> categoryIcon.setImageResource(android.R.drawable.ic_menu_agenda)
+                "Развлечения" -> categoryIcon.setImageResource(android.R.drawable.ic_menu_gallery)
+                else -> categoryIcon.setImageResource(android.R.drawable.ic_menu_edit)
+            }
+
+            titleTextView.text = categoryName
+        }
     }
 
     private fun setupTextWatcher() {
         amountEditText.doOnTextChanged { text, _, _, _ ->
             currentAmount = text?.toString()?.toFloatOrNull() ?: 0f
-            // ЛОГ 2: При изменении текста
-            Log.d("CategoryEdit", "Text changed: $currentAmount")
         }
     }
 
@@ -99,9 +119,6 @@ class CategoryEditFragment : Fragment() {
 
     private fun setupClickListeners(view: View) {
         view.findViewById<Button>(R.id.cancelButton).setOnClickListener {
-            // ЛОГ 3: При нажатии Отмена
-            Log.d("CategoryEdit", "=== CANCEL BUTTON ===")
-            Log.d("CategoryEdit", "No update sent, closing")
             findNavController().popBackStack()
         }
 
@@ -109,28 +126,52 @@ class CategoryEditFragment : Fragment() {
             amountEditText.isEnabled = true
             amountEditText.requestFocus()
             showKeyboard()
-            Toast.makeText(requireContext(), "Режим редактирования", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "Режим редактирования",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         view.findViewById<Button>(R.id.confirmButton).setOnClickListener {
-            val newAmount = amountEditText.text.toString().toFloatOrNull() ?: originalAmount
+            val newAmount = amountEditText.text.toString().toFloatOrNull() ?: 0f
 
-            // ЛОГ 4: При нажатии Подтвердить
-            Log.d("CategoryEdit", "=== CONFIRM BUTTON ===")
-            Log.d("CategoryEdit", "Category: $categoryName")
-            Log.d("CategoryEdit", "Original amount: $originalAmount")
-            Log.d("CategoryEdit", "New amount: $newAmount")
-            Log.d("CategoryEdit", "Text from EditText: ${amountEditText.text.toString()}")
-
-            if (newAmount != originalAmount) {
-                Log.d("CategoryEdit", "Sending update to MainFragment...")
-                val result = Bundle().apply {
-                    putString("category_name", categoryName)
-                    putFloat("new_amount", newAmount)
+            if (isIncomeMode) {
+                // Режим дохода - добавляем доход через ViewModel
+                if (newAmount > 0) {
+                    viewModel.addIncome(newAmount)
+                    Toast.makeText(
+                        requireContext(),
+                        "Доход добавлен: ${String.format("%.2f", newAmount)} ₽",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-                parentFragmentManager.setFragmentResult("category_update", result)
             } else {
-                Log.d("CategoryEdit", "Amount unchanged, not sending update")
+                // Режим категории - ПРИБАВЛЯЕМ сумму к существующей
+                if (newAmount > 0) {
+                    // Новая сумма = старая + добавленная
+                    val updatedAmount = originalAmount + newAmount
+
+                    val result = Bundle().apply {
+                        putString("category_name", categoryName)
+                        putFloat("new_amount", updatedAmount)
+                    }
+                    parentFragmentManager.setFragmentResult("category_update", result)
+
+                    Toast.makeText(
+                        requireContext(),
+                        "Добавлено: ${
+                            String.format("%.2f", newAmount)
+                        } ₽\nНовая сумма: ${String.format("%.2f", updatedAmount)} ₽",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        "Введите сумму",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
 
             findNavController().popBackStack()
@@ -154,7 +195,5 @@ class CategoryEditFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         hideKeyboard()
-        // ЛОГ 5: При уничтожении фрагмента
-        Log.d("CategoryEdit", "=== onDestroyView ===")
     }
 }

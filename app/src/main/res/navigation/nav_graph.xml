@@ -26,6 +26,10 @@
         <argument
             android:name="category_amount"
             app:argType="float" />
+        <argument
+            android:name="is_income_mode"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 
 </navigation>

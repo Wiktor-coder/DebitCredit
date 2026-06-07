@@ -11,7 +11,6 @@
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Редактирование категории"
         android:textColor="#FFFFFF"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -73,6 +72,19 @@
             android:textStyle="bold" />
 
     </LinearLayout>
+
+<!--  Сумма трат  -->
+    <TextView
+        android:id="@+id/currentAmountHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="#666666"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/inputContainer" />
 
     <!-- Нижняя панель с тремя кнопками -->
     <LinearLayout

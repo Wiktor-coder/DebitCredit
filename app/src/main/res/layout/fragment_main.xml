@@ -37,6 +37,17 @@
 
             </FrameLayout>
 
+            <!-- TextView для отображения баланса -->
+            <TextView
+                android:id="@+id/balanceTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="💰 Баланс: 0 ₽"
+                android:textColor="#4ECDC4"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
             <!-- Контейнер для маленьких StatsView (изначально скрыт) -->
             <FrameLayout
                 android:id="@+id/detailContainer"

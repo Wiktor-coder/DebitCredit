@@ -148,11 +148,6 @@ class StatsView @JvmOverloads constructor(
             textPaint.color = Color.WHITE
             canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 4, textPaint)
 
-            // Рисуем маленькую подпись "всего"
-//            smallTextPaint.textSize = fontSize * 0.4f
-//            smallTextPaint.color = Color.parseColor("#AAAAAA")
-//            canvas.drawText("всего", center.x, center.y - fontSize / 4, smallTextPaint)
-
             // Рисуем точку-индикатор сверху (нормальную)
             if (data.isNotEmpty()) {
                 val dotRadius = lineWidth * 0.5f
