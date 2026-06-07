@@ -2,6 +2,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -11,7 +13,7 @@ android {
 //            minorApiLevel = 1
 //        }
 //    }
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "ru.github.debitcredit"
@@ -36,6 +38,16 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    buildFeatures {
+        viewBinding = true
+    }
+}
+
+// Добавляем параметры для Room KSP
+ksp {
+    arg("room.generateKotlin", "true")  // Генерировать Kotlin код вместо Java
+    arg("room.incremental", "true")      // Инкрементальная компиляция
 }
 
 kotlin {
@@ -63,6 +75,15 @@ dependencies {
     // ViewModel и LiveData
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
+
+    // Navigation Component
+    implementation("androidx.navigation:navigation-fragment-ktx:2.8.7")
+    implementation("androidx.navigation:navigation-ui-ktx:2.8.7")
+
+    // Room dependencies
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)

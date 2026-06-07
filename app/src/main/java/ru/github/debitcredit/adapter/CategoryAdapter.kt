@@ -7,11 +7,11 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import ru.github.debitcredit.R
-import ru.github.debitcredit.data.Category
+import ru.github.debitcredit.data.model.CategoryEntity
 
 class CategoryAdapter(
-    private var categories: List<Category>,
-    private val onItemClick: (Category) -> Unit
+    private var categories: List<CategoryEntity>,
+    private val onItemClick: (CategoryEntity) -> Unit
 ) : RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
 
     class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -36,7 +36,7 @@ class CategoryAdapter(
 
     override fun getItemCount() = categories.size
 
-    fun updateCategories(newCategories: List<Category>) {
+    fun updateCategories(newCategories: List<CategoryEntity>) {
         categories = newCategories
         notifyDataSetChanged()
     }

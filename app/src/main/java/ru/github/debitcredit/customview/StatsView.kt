@@ -3,6 +3,7 @@ package ru.github.debitcredit.customview
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
+import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
@@ -146,11 +147,6 @@ class StatsView @JvmOverloads constructor(
             textPaint.textSize = fontSize
             textPaint.color = Color.WHITE
             canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 4, textPaint)
-
-            // Рисуем маленькую подпись "всего"
-//            smallTextPaint.textSize = fontSize * 0.4f
-//            smallTextPaint.color = Color.parseColor("#AAAAAA")
-//            canvas.drawText("всего", center.x, center.y - fontSize / 4, smallTextPaint)
 
             // Рисуем точку-индикатор сверху (нормальную)
             if (data.isNotEmpty()) {
