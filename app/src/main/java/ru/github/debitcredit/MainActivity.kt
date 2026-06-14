@@ -17,10 +17,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        // Загружаем настройки перед super.onCreate
         val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
 
-        // Применяем тему ДО создания активности
         val isDarkTheme = sharedPref.getBoolean("theme", false)
         if (isDarkTheme) {
             setTheme(R.style.Theme_DebitCredit_Night)
@@ -30,7 +28,6 @@ class MainActivity : AppCompatActivity() {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        // Применяем язык
         updateLocale(sharedPref)
 
         super.onCreate(savedInstanceState)
@@ -53,7 +50,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // Обновляем язык при изменении конфигурации
         val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         updateLocale(sharedPref)
     }

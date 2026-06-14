@@ -17,7 +17,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Контейнер для иконки категории -->
     <FrameLayout
         android:id="@+id/iconContainer"
         android:layout_width="120dp"
@@ -37,7 +36,6 @@
 
     </FrameLayout>
 
-    <!-- Поле ввода суммы -->
     <LinearLayout
         android:id="@+id/inputContainer"
         android:layout_width="match_parent"
@@ -72,7 +70,6 @@
 
     </LinearLayout>
 
-    <!-- Текущая сумма трат -->
     <TextView
         android:id="@+id/currentAmountHint"
         android:layout_width="wrap_content"
@@ -85,51 +82,47 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/inputContainer" />
 
-    <!-- Нижняя панель с тремя круглыми кнопками -->
     <LinearLayout
         android:id="@+id/bottomPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
-        android:gravity="center"
         android:orientation="horizontal"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Кнопка Отмена (стрелка влево) -->
         <ImageButton
             android:id="@+id/cancelButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
+            android:src="@drawable/ic_left"
             android:background="@drawable/circle_background"
-            android:contentDescription="@string/cancel"
-            android:padding="12dp"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_left" />
+            android:padding="12dp"
+            android:contentDescription="@string/cancel" />
 
-        <!-- Кнопка Редактировать (шестеренка) -->
         <ImageButton
-            android:id="@+id/editButton"
+            android:id="@+id/deleteButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
+            android:src="@android:drawable/ic_menu_delete"
             android:background="@drawable/circle_background"
-            android:contentDescription="@string/edit"
-            android:padding="12dp"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_settings" />
+            android:padding="12dp"
+            android:contentDescription="@string/delete_category" />
 
-        <!-- Кнопка Подтвердить (галочка) -->
         <ImageButton
             android:id="@+id/confirmButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
+            android:src="@android:drawable/ic_menu_save"
             android:background="@drawable/circle_background"
-            android:contentDescription="@string/confirm"
-            android:padding="12dp"
             android:scaleType="centerInside"
-            android:src="@android:drawable/ic_menu_save" />
+            android:padding="12dp"
+            android:contentDescription="@string/confirm" />
 
     </LinearLayout>
 

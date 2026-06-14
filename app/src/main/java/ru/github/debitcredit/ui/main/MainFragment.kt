@@ -34,8 +34,9 @@ class MainFragment : Fragment() {
     private lateinit var statsView: StatsView
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var addCategoryButton: ImageButton
+    private lateinit var incomeButton: ImageButton
 
-    // Все категории с яркими цветами
     private val predefinedCategories = listOf(
         Triple(R.string.products, "#FF5252", android.R.drawable.ic_menu_agenda),
         Triple(R.string.utilities, "#FF4081", android.R.drawable.ic_menu_manage),
@@ -92,16 +93,10 @@ class MainFragment : Fragment() {
             val categoryName = bundle.getString("category_name") ?: return@setFragmentResultListener
             val newAmount = bundle.getFloat("new_amount")
 
-            Log.d("MainFragment", "Received update: $categoryName -> $newAmount")
-            Log.d("MainFragment", "Current categories: ${categories.map { "${it.name}=${it.amount}" }}")
-
             val category = categories.find { it.name == categoryName }
-            if (category != null) {
-                Log.d("MainFragment", "Found category: ${category.name}, old amount: ${category.amount}")
-                val updatedCategory = category.copy(amount = newAmount)
+            category?.let {
+                val updatedCategory = it.copy(amount = newAmount)
                 viewModel.updateCategory(updatedCategory)
-            } else {
-                Log.e("MainFragment", "Category not found: $categoryName")
             }
         }
 
@@ -119,13 +114,11 @@ class MainFragment : Fragment() {
     private fun observeCategories() {
         lifecycleScope.launch {
             viewModel.categories.collect { categoryList ->
-                Log.d("MainFragment", "Categories updated: ${categoryList.size}")
                 categories.clear()
                 categories.addAll(categoryList)
                 categoryAdapter.updateCategories(categories)
                 updateStatsView()
 
-                // Обновляем отображение для всех предопределенных категорий
                 predefinedCategories.forEach { (nameRes, _, _) ->
                     val catName = getString(nameRes)
                     val category = categories.find { it.name == catName }
@@ -155,15 +148,23 @@ class MainFragment : Fragment() {
     private fun initializeViews(view: View) {
         statsView = view.findViewById(R.id.statsView)
         categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView)
+        addCategoryButton = view.findViewById(R.id.addCategoryButton)
+        incomeButton = view.findViewById(R.id.incomeButton)
 
         categoryRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
-        categoryAdapter = CategoryAdapter(categories) { category ->
-            Toast.makeText(
-                requireContext(),
-                "${getString(R.string.category_selected)}: ${category.name}",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+
+        categoryAdapter = CategoryAdapter(
+            categories,
+            onItemClick = { category ->
+                val bundle = Bundle().apply {
+                    putString("category_name", category.name)
+                    putInt("category_id", category.id)
+                    putInt("category_color", category.color)
+                    putFloat("category_amount", category.amount)
+                }
+                findNavController().navigate(R.id.categoryEditFragment, bundle)
+            }
+        )
         categoryRecyclerView.adapter = categoryAdapter
     }
 
@@ -225,7 +226,6 @@ class MainFragment : Fragment() {
     }
 
     private fun updateStatsView() {
-        // Фильтруем категории с суммой > 0 для отображения в графике
         val positiveCategories = categories.filter { it.amount > 0 }
 
         val statsData = if (positiveCategories.isNotEmpty()) {
@@ -237,7 +237,6 @@ class MainFragment : Fragment() {
                 )
             }
         } else {
-            // Если нет категорий с суммами, показываем заглушку
             listOf(
                 StatsView.CategoryData(
                     name = getString(R.string.no_data),
@@ -252,17 +251,7 @@ class MainFragment : Fragment() {
     }
 
     private fun setupClickListeners(view: View) {
-        view.findViewById<ImageButton>(R.id.deleteCategoryButton).setOnClickListener {
-            if (categories.isNotEmpty()) {
-                val categoryToDelete = categories.last()
-                viewModel.deleteCategory(categoryToDelete)
-                Toast.makeText(requireContext(), getString(R.string.category_deleted), Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), getString(R.string.no_categories), Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        view.findViewById<ImageButton>(R.id.addCategoryButton).setOnClickListener {
+        addCategoryButton.setOnClickListener {
             val newId = (categories.maxOfOrNull { it.id } ?: 0) + 1
             val colors = listOf(
                 Color.parseColor("#FF5252"),
@@ -287,7 +276,7 @@ class MainFragment : Fragment() {
             ).show()
         }
 
-        view.findViewById<ImageButton>(R.id.incomeButton).setOnClickListener {
+        incomeButton.setOnClickListener {
             val bundle = Bundle().apply {
                 putBoolean("is_income_mode", true)
                 putString("category_name", getString(R.string.income))

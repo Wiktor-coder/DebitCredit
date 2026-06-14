@@ -27,6 +27,10 @@
             android:name="category_name"
             app:argType="string" />
         <argument
+            android:name="category_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
             android:name="category_color"
             app:argType="integer" />
         <argument
