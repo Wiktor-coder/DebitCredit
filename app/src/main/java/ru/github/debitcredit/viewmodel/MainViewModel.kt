@@ -60,10 +60,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun initializeDefaultData() {
         isDataInitialized = true
+        // Используем прямые строки, а не ресурсы (ViewModel не имеет доступа к getString)
         val defaultCategories = listOf(
-            CategoryEntity(0, "Продукты", 2500f, android.graphics.Color.parseColor("#FF6B6B")),
-            CategoryEntity(0, "Развлечения", 1200f, android.graphics.Color.parseColor("#4ECDC4")),
-            CategoryEntity(0, "Иное", 800f, android.graphics.Color.parseColor("#96CEB4"))
+            CategoryEntity(0, "Продукты", 2500f, android.graphics.Color.parseColor("#FF5252")),
+            CategoryEntity(0, "ЖКХ", 3500f, android.graphics.Color.parseColor("#FF4081")),
+            CategoryEntity(0, "Транспорт", 2000f, android.graphics.Color.parseColor("#FFB74D")),
+            CategoryEntity(0, "Здоровье", 1500f, android.graphics.Color.parseColor("#4CAF50")),
+            CategoryEntity(0, "Одежда", 1800f, android.graphics.Color.parseColor("#9C27B0")),
+            CategoryEntity(0, "Развлечения", 1200f, android.graphics.Color.parseColor("#2196F3")),
+            CategoryEntity(0, "Иное", 800f, android.graphics.Color.parseColor("#78909C"))
         )
         defaultCategories.forEach { categoryDao.insert(it) }
     }

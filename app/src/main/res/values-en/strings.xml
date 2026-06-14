@@ -26,6 +26,10 @@
     <string name="add_category">Add category</string>
     <string name="balance">Balance</string>
     <string name="products">Products</string>
+    <string name="utilities">Utilities</string>
+    <string name="transport">Transport</string>
+    <string name="health">Health</string>
+    <string name="clothing">Clothing</string>
     <string name="entertainment">Entertainment</string>
     <string name="other">Other</string>
     <string name="current_amount">Current amount</string>

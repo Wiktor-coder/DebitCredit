@@ -2,6 +2,7 @@ package ru.github.debitcredit.ui.main
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -33,11 +34,18 @@ class MainFragment : Fragment() {
     private lateinit var statsView: StatsView
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var categoryAdapter: CategoryAdapter
+
+    // Все категории с яркими цветами
     private val predefinedCategories = listOf(
-        R.string.products to R.string.products,
-        R.string.entertainment to R.string.entertainment,
-        R.string.other to R.string.other
+        Triple(R.string.products, "#FF5252", android.R.drawable.ic_menu_agenda),
+        Triple(R.string.utilities, "#FF4081", android.R.drawable.ic_menu_manage),
+        Triple(R.string.transport, "#FFB74D", android.R.drawable.ic_menu_directions),
+        Triple(R.string.health, "#4CAF50", android.R.drawable.ic_menu_edit),
+        Triple(R.string.clothing, "#9C27B0", android.R.drawable.ic_menu_edit),
+        Triple(R.string.entertainment, "#2196F3", android.R.drawable.ic_menu_gallery),
+        Triple(R.string.other, "#78909C", android.R.drawable.ic_menu_edit)
     )
+
     private var categories = mutableListOf<CategoryEntity>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,10 +92,16 @@ class MainFragment : Fragment() {
             val categoryName = bundle.getString("category_name") ?: return@setFragmentResultListener
             val newAmount = bundle.getFloat("new_amount")
 
+            Log.d("MainFragment", "Received update: $categoryName -> $newAmount")
+            Log.d("MainFragment", "Current categories: ${categories.map { "${it.name}=${it.amount}" }}")
+
             val category = categories.find { it.name == categoryName }
-            category?.let {
-                val updatedCategory = it.copy(amount = newAmount)
+            if (category != null) {
+                Log.d("MainFragment", "Found category: ${category.name}, old amount: ${category.amount}")
+                val updatedCategory = category.copy(amount = newAmount)
                 viewModel.updateCategory(updatedCategory)
+            } else {
+                Log.e("MainFragment", "Category not found: $categoryName")
             }
         }
 
@@ -105,12 +119,14 @@ class MainFragment : Fragment() {
     private fun observeCategories() {
         lifecycleScope.launch {
             viewModel.categories.collect { categoryList ->
+                Log.d("MainFragment", "Categories updated: ${categoryList.size}")
                 categories.clear()
                 categories.addAll(categoryList)
                 categoryAdapter.updateCategories(categories)
                 updateStatsView()
 
-                predefinedCategories.forEach { (nameRes, _) ->
+                // Обновляем отображение для всех предопределенных категорий
+                predefinedCategories.forEach { (nameRes, _, _) ->
                     val catName = getString(nameRes)
                     val category = categories.find { it.name == catName }
                     category?.let {
@@ -154,14 +170,14 @@ class MainFragment : Fragment() {
     private fun setupPredefinedCategories(view: View) {
         val categoriesContainer = view.findViewById<LinearLayout>(R.id.predefinedCategoriesContainer)
 
-        predefinedCategories.forEach { (nameRes, colorRes) ->
+        predefinedCategories.forEach { (nameRes, colorRes, iconRes) ->
             val categoryName = getString(nameRes)
-            val categoryView = createCategoryView(categoryName)
+            val categoryColor = Color.parseColor(colorRes)
+            val categoryView = createCategoryView(categoryName, categoryColor, iconRes)
             categoriesContainer.addView(categoryView)
 
             categoryView.setOnClickListener {
                 val currentAmount = categories.find { it.name == categoryName }?.amount ?: 0f
-                val categoryColor = getColorForCategory(categoryName)
 
                 val bundle = Bundle().apply {
                     putString("category_name", categoryName)
@@ -173,27 +189,19 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun createCategoryView(categoryName: String): View {
+    private fun createCategoryView(categoryName: String, color: Int, iconRes: Int): View {
         val view = layoutInflater.inflate(R.layout.item_category_predefined, null)
         val nameText = view.findViewById<TextView>(R.id.categoryNameText)
         val amountText = view.findViewById<TextView>(R.id.categoryAmountText)
         val cardView = view.findViewById<CardView>(R.id.categoryCard)
 
         nameText.text = categoryName
-        cardView.setCardBackgroundColor(getColorForCategory(categoryName))
+        cardView.setCardBackgroundColor(color)
 
         val category = categories.find { it.name == categoryName }
         amountText.text = String.format("%.2f ₽", category?.amount ?: 0f)
 
         return view
-    }
-
-    private fun getColorForCategory(name: String): Int {
-        return when (name) {
-            getString(R.string.products) -> Color.parseColor("#FF6B6B")
-            getString(R.string.entertainment) -> Color.parseColor("#4ECDC4")
-            else -> Color.parseColor("#96CEB4")
-        }
     }
 
     private fun updatePredefinedCategoryAmount(categoryName: String, newAmount: Float) {
@@ -217,13 +225,28 @@ class MainFragment : Fragment() {
     }
 
     private fun updateStatsView() {
-        val statsData = categories.map { category ->
-            StatsView.CategoryData(
-                name = category.name,
-                amount = category.amount,
-                color = category.color
+        // Фильтруем категории с суммой > 0 для отображения в графике
+        val positiveCategories = categories.filter { it.amount > 0 }
+
+        val statsData = if (positiveCategories.isNotEmpty()) {
+            positiveCategories.map { category ->
+                StatsView.CategoryData(
+                    name = category.name,
+                    amount = category.amount,
+                    color = category.color
+                )
+            }
+        } else {
+            // Если нет категорий с суммами, показываем заглушку
+            listOf(
+                StatsView.CategoryData(
+                    name = getString(R.string.no_data),
+                    amount = 1f,
+                    color = Color.parseColor("#78909C")
+                )
             )
         }
+
         statsView.isSmallMode = false
         statsView.data = statsData
     }
@@ -242,16 +265,18 @@ class MainFragment : Fragment() {
         view.findViewById<ImageButton>(R.id.addCategoryButton).setOnClickListener {
             val newId = (categories.maxOfOrNull { it.id } ?: 0) + 1
             val colors = listOf(
-                Color.parseColor("#FFEAA7"),
-                Color.parseColor("#DFE6E9"),
-                Color.parseColor("#74B9FF"),
-                Color.parseColor("#A29BFE"),
-                Color.parseColor("#FDCB6E")
+                Color.parseColor("#FF5252"),
+                Color.parseColor("#FF4081"),
+                Color.parseColor("#FFB74D"),
+                Color.parseColor("#4CAF50"),
+                Color.parseColor("#9C27B0"),
+                Color.parseColor("#2196F3"),
+                Color.parseColor("#78909C")
             )
             val newCategoryEntity = CategoryEntity(
                 0,
                 "${getString(R.string.category)} ${newId}",
-                500f,
+                0f,
                 colors[newId % colors.size]
             )
             viewModel.addCategory(newCategoryEntity)

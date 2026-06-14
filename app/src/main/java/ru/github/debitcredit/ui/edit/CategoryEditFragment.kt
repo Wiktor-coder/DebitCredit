@@ -3,6 +3,7 @@ package ru.github.debitcredit.ui.edit
 import android.app.Activity
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -139,6 +140,9 @@ class CategoryEditFragment : Fragment() {
             } else {
                 if (newAmount > 0) {
                     val updatedAmount = originalAmount + newAmount
+
+                    Log.d("CategoryEdit", "Updating category: $categoryName")
+                    Log.d("CategoryEdit", "Original: $originalAmount, Added: $newAmount, New: $updatedAmount")
 
                     val result = Bundle().apply {
                         putString("category_name", categoryName)

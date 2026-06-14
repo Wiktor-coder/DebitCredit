@@ -26,6 +26,10 @@
     <string name="add_category">Добавить категорию</string>
     <string name="balance">Баланс</string>
     <string name="products">Продукты</string>
+    <string name="utilities">ЖКХ</string>
+    <string name="transport">Транспорт</string>
+    <string name="health">Здоровье</string>
+    <string name="clothing">Одежда</string>
     <string name="entertainment">Развлечения</string>
     <string name="other">Иное</string>
     <string name="current_amount">Текущая сумма</string>
