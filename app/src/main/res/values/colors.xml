@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Основные цвета -->
     <color name="colorPrimary">#1E1E2E</color>
-    <color name="colorPrimaryDark">#1E1E2E</color>
+    <color name="colorPrimaryDark">#0D0D1A</color>
     <color name="colorAccent">#4ECDC4</color>
+    <color name="colorAccentDark">#3BA89F</color>
     <color name="colorPrimaryVariant">#2C3E50</color>
+    <color name="colorPrimaryVariantDark">#1A2A3A</color>
 
+    <!-- Фоны -->
+    <color name="background_light">#F5F5F5</color>
+    <color name="background_dark">#1E1E2E</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Цвета для текста -->
+    <color name="text_primary_light">#1A1A1A</color>
+    <color name="text_secondary_light">#666666</color>
+    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="text_secondary_dark">#AAAAAA</color>
+
+    <!-- Цвета для графиков -->
+    <color name="chart_background_light">#E8F5E9</color>
+    <color name="chart_background_dark">#2D2D44</color>
+    <color name="chart_grid_light">#CCCCCC</color>
+    <color name="chart_grid_dark">#555555</color>
 </resources>

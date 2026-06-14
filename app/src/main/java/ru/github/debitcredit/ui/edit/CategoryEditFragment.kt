@@ -3,14 +3,13 @@ package ru.github.debitcredit.ui.edit
 import android.app.Activity
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -35,7 +34,7 @@ class CategoryEditFragment : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             isIncomeMode = it.getBoolean("is_income_mode", false)
-            categoryName = it.getString("category_name") ?: "Категория"
+            categoryName = it.getString("category_name") ?: getString(R.string.other)
             originalAmount = it.getFloat("category_amount", 0f)
             currentAmount = it.getFloat("category_amount", 0f)
         }
@@ -61,16 +60,14 @@ class CategoryEditFragment : Fragment() {
     private fun setupViews(view: View) {
         amountEditText = view.findViewById(R.id.amountEditText)
         amountEditText.setText("")
-        amountEditText.hint = "Сумма для добавления"
+        amountEditText.hint = getString(R.string.add_amount)
 
-        // Скрываем/показываем кнопку редактирования для режима дохода
-        val editButton = view.findViewById<Button>(R.id.editButton)
+        val editButton = view.findViewById<ImageButton>(R.id.editButton)
         if (isIncomeMode) {
-            editButton.visibility = View.GONE  // ← Скрываем кнопку "Редактировать" для дохода
+            editButton.visibility = View.GONE
         } else {
-            // Для категорий показываем текущую сумму где-то в UI
             val currentAmountHint = view.findViewById<TextView>(R.id.currentAmountHint)
-            currentAmountHint?.text = "Текущая сумма: ${String.format("%.2f", originalAmount)} ₽"
+            currentAmountHint?.text = "${getString(R.string.current_amount)}: ${String.format("%.2f", originalAmount)} ₽"
             currentAmountHint?.visibility = View.VISIBLE
         }
 
@@ -85,17 +82,15 @@ class CategoryEditFragment : Fragment() {
         val titleTextView = view.findViewById<TextView>(R.id.titleTextView)
 
         if (isIncomeMode) {
-            // Для дохода - своя иконка и заголовок
-            categoryIcon.setImageResource(android.R.drawable.stat_sys_upload)
-
-            titleTextView.text = "Добавить доход"
+            categoryIcon.setImageResource(R.drawable.ic_ruble)
+            iconContainer.setBackgroundColor(R.drawable.button_background_edit)
+            titleTextView.text = getString(R.string.add_income)
         } else {
             when (categoryName) {
-                "Продукты" -> categoryIcon.setImageResource(android.R.drawable.ic_menu_agenda)
-                "Развлечения" -> categoryIcon.setImageResource(android.R.drawable.ic_menu_gallery)
+                getString(R.string.products) -> categoryIcon.setImageResource(android.R.drawable.ic_menu_agenda)
+                getString(R.string.entertainment) -> categoryIcon.setImageResource(android.R.drawable.ic_menu_gallery)
                 else -> categoryIcon.setImageResource(android.R.drawable.ic_menu_edit)
             }
-
             titleTextView.text = categoryName
         }
     }
@@ -118,38 +113,31 @@ class CategoryEditFragment : Fragment() {
     }
 
     private fun setupClickListeners(view: View) {
-        view.findViewById<Button>(R.id.cancelButton).setOnClickListener {
+        view.findViewById<ImageButton>(R.id.cancelButton).setOnClickListener {
             findNavController().popBackStack()
         }
 
-        view.findViewById<Button>(R.id.editButton).setOnClickListener {
+        view.findViewById<ImageButton>(R.id.editButton).setOnClickListener {
             amountEditText.isEnabled = true
             amountEditText.requestFocus()
             showKeyboard()
-            Toast.makeText(
-                requireContext(),
-                "Режим редактирования",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(requireContext(), getString(R.string.edit_mode), Toast.LENGTH_SHORT).show()
         }
 
-        view.findViewById<Button>(R.id.confirmButton).setOnClickListener {
+        view.findViewById<ImageButton>(R.id.confirmButton).setOnClickListener {
             val newAmount = amountEditText.text.toString().toFloatOrNull() ?: 0f
 
             if (isIncomeMode) {
-                // Режим дохода - добавляем доход через ViewModel
                 if (newAmount > 0) {
                     viewModel.addIncome(newAmount)
                     Toast.makeText(
                         requireContext(),
-                        "Доход добавлен: ${String.format("%.2f", newAmount)} ₽",
+                        "${getString(R.string.income_added)}: ${String.format("%.2f", newAmount)} ₽",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             } else {
-                // Режим категории - ПРИБАВЛЯЕМ сумму к существующей
                 if (newAmount > 0) {
-                    // Новая сумма = старая + добавленная
                     val updatedAmount = originalAmount + newAmount
 
                     val result = Bundle().apply {
@@ -160,15 +148,13 @@ class CategoryEditFragment : Fragment() {
 
                     Toast.makeText(
                         requireContext(),
-                        "Добавлено: ${
-                            String.format("%.2f", newAmount)
-                        } ₽\nНовая сумма: ${String.format("%.2f", updatedAmount)} ₽",
+                        "${getString(R.string.amount_added)}: ${String.format("%.2f", newAmount)} ₽\n${getString(R.string.new_amount)}: ${String.format("%.2f", updatedAmount)} ₽",
                         Toast.LENGTH_LONG
                     ).show()
                 } else {
                     Toast.makeText(
                         requireContext(),
-                        "Введите сумму",
+                        getString(R.string.enter_amount),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -179,16 +165,14 @@ class CategoryEditFragment : Fragment() {
     }
 
     private fun showKeyboard() {
-        val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE)
-                as InputMethodManager
+        val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         amountEditText.post {
             imm.showSoftInput(amountEditText, 0)
         }
     }
 
     private fun hideKeyboard() {
-        val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE)
-                as InputMethodManager
+        val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(amountEditText.windowToken, 0)
     }
 

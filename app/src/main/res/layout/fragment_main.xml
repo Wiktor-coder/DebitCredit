@@ -5,23 +5,24 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1E1E2E">
+    android:background="?attr/colorSurface">
 
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:background="?attr/colorSurface"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/bottomButtonsLayout">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
             android:paddingTop="32dp"
-            android:paddingBottom="16dp"
-            android:gravity="center_horizontal">
+            android:paddingBottom="16dp">
 
             <!-- Контейнер для большого StatsView -->
             <FrameLayout
@@ -43,29 +44,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="💰 Баланс: 0 ₽"
-                android:textColor="#4ECDC4"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <!-- Контейнер для маленьких StatsView (изначально скрыт) -->
-            <FrameLayout
-                android:id="@+id/detailContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:padding="8dp">
-
-                <include layout="@layout/scene_stats_detail" />
-
-            </FrameLayout>
+                android:text="@string/balance"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="22sp"
+                android:textStyle="bold|italic"/>
 
             <LinearLayout
                 android:id="@+id/predefinedCategoriesContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:paddingHorizontal="16dp" />
 
         </LinearLayout>
@@ -103,12 +92,12 @@
                 android:layout_height="48dp"
                 android:src="@android:drawable/ic_menu_delete"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Удалить категорию"/>
+                android:contentDescription="@string/delete_category"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Удалить категорию"
-                android:textColor="#FFFFFF"
+                android:text="@string/delete_category"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="12sp"/>
         </LinearLayout>
 
@@ -122,14 +111,14 @@
                 android:id="@+id/incomeButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@android:drawable/stat_sys_upload"
+                android:src="@drawable/ic_ruble"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Доход"/>
+                android:contentDescription="@string/income"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Доход"
-                android:textColor="#FFFFFF"
+                android:text="@string/income"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="12sp"/>
         </LinearLayout>
 
@@ -145,12 +134,12 @@
                 android:layout_height="48dp"
                 android:src="@android:drawable/ic_input_add"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Добавить категорию"/>
+                android:contentDescription="@string/add_category"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Добавить категорию"
-                android:textColor="#FFFFFF"
+                android:text="@string/add_category"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="12sp"/>
         </LinearLayout>
     </LinearLayout>
