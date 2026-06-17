@@ -25,9 +25,8 @@ abstract class AppDatabase : RoomDatabase() {
         private var INSTANCE: AppDatabase? = null
 
         // Миграция с версии 1 до версии 2 (добавление таблицы incomes)
-        private val MIGRATION_2_3 = object : Migration(2, 3) {
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Создаем новую таблицу для доходов
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS `incomes` (
                         `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -39,6 +38,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // Миграция с версии 2 до версии 3
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Здесь можно добавить изменения для версии 3
+                // Пока ничего не меняем
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -46,8 +53,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "debitcredit.db"
                 )
-                    .addMigrations(MIGRATION_2_3)
-//                    .fallbackToDestructiveMigration(true) // для разработки
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .fallbackToDestructiveMigration(true) // для разработки
                     .build()
                 INSTANCE = instance
                 instance

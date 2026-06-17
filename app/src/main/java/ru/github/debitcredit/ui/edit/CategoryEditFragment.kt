@@ -2,6 +2,7 @@ package ru.github.debitcredit.ui.edit
 
 import android.app.Activity
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -27,8 +28,8 @@ class CategoryEditFragment : Fragment() {
     )
     private var isIncomeMode = false
     private lateinit var categoryName: String
-    private var categoryId: Int = 0           // ← ДОБАВЛЕНО
-    private var categoryColor: Int = 0        // ← ДОБАВЛЕНО
+    private var categoryId: Int = 0
+    private var categoryColor: Int = 0
     private var originalAmount: Float = 0f
     private var currentAmount: Float = 0f
     private lateinit var amountEditText: EditText
@@ -38,8 +39,8 @@ class CategoryEditFragment : Fragment() {
         arguments?.let {
             isIncomeMode = it.getBoolean("is_income_mode", false)
             categoryName = it.getString("category_name") ?: getString(R.string.other)
-            categoryId = it.getInt("category_id", 0)           // ← ДОБАВЛЕНО
-            categoryColor = it.getInt("category_color", Color.parseColor("#FF6B6B"))  // ← ДОБАВЛЕНО
+            categoryId = it.getInt("category_id", 0)
+            categoryColor = it.getInt("category_color", Color.parseColor("#FF6B6B"))
             originalAmount = it.getFloat("category_amount", 0f)
             currentAmount = it.getFloat("category_amount", 0f)
         }
@@ -67,25 +68,31 @@ class CategoryEditFragment : Fragment() {
         amountEditText.setText("")
         amountEditText.hint = getString(R.string.add_amount)
 
-        // Скрываем кнопку удаления в режиме дохода
-        val deleteButton = view.findViewById<ImageButton>(R.id.deleteButton)
-        if (isIncomeMode) {
-            deleteButton.visibility = View.GONE
-        }
-
         val iconContainer = view.findViewById<View>(R.id.iconContainer)
-        iconContainer.setBackgroundColor(categoryColor)
-
         val categoryIcon = view.findViewById<ImageView>(R.id.categoryIcon)
         val titleTextView = view.findViewById<TextView>(R.id.titleTextView)
 
         if (isIncomeMode) {
             categoryIcon.setImageResource(R.drawable.ic_ruble)
+            // Для дохода используем специальный фон
             iconContainer.setBackgroundResource(R.drawable.button_background_edit)
             titleTextView.text = getString(R.string.add_income)
             titleTextView.visibility = View.VISIBLE
         } else {
             titleTextView.text = categoryName
+
+            // Создаем круглый фон программно для иконки категории
+            val drawable = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(categoryColor)
+                setSize(120, 120)
+            }
+            iconContainer.background = drawable
+
+            // Устанавливаем белую иконку
+            categoryIcon.setImageResource(android.R.drawable.ic_menu_edit)
+            categoryIcon.setColorFilter(android.graphics.Color.WHITE)
+
             val currentAmountHint = view.findViewById<TextView>(R.id.currentAmountHint)
             currentAmountHint?.text = "${getString(R.string.current_amount)}: ${String.format("%.2f", originalAmount)} ₽"
             currentAmountHint?.visibility = View.VISIBLE
@@ -112,10 +119,6 @@ class CategoryEditFragment : Fragment() {
     private fun setupClickListeners(view: View) {
         view.findViewById<ImageButton>(R.id.cancelButton).setOnClickListener {
             findNavController().popBackStack()
-        }
-
-        view.findViewById<ImageButton>(R.id.deleteButton).setOnClickListener {
-            showDeleteConfirmationDialog()
         }
 
         view.findViewById<ImageButton>(R.id.confirmButton).setOnClickListener {
@@ -156,30 +159,6 @@ class CategoryEditFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun showDeleteConfirmationDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Удаление категории")
-            .setMessage("Вы действительно хотите удалить категорию \"$categoryName\"? Все данные будут потеряны.")
-            .setPositiveButton("Удалить") { _, _ ->
-                deleteCategory()
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
-
-    private fun deleteCategory() {
-        // Создаем категорию для удаления
-        val categoryToDelete = ru.github.debitcredit.data.model.CategoryEntity(
-            id = categoryId,
-            name = categoryName,
-            amount = originalAmount,
-            color = categoryColor
-        )
-        viewModel.deleteCategory(categoryToDelete)
-        Toast.makeText(requireContext(), "Категория \"$categoryName\" удалена", Toast.LENGTH_SHORT).show()
-        findNavController().popBackStack()
     }
 
     private fun showKeyboard() {

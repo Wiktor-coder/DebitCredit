@@ -11,6 +11,8 @@
     <string name="confirm">Подтвердить</string>
     <string name="back">Назад</string>
     <string name="delete">Удалить</string>
+    <string name="delete_category_confirmation">Вы действительно хотите удалить категорию "%s"?</string>
+    <string name="menu">Меню</string>
     <string name="add">Добавить</string>
     <string name="income">Доход</string>
     <string name="edit_mode">Режим редактирования</string>

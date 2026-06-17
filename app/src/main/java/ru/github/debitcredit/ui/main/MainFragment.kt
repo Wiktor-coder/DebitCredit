@@ -1,20 +1,24 @@
 package ru.github.debitcredit.ui.main
 
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.cardview.widget.CardView
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -65,6 +69,7 @@ class MainFragment : Fragment() {
                 findNavController().navigate(R.id.settingsFragment)
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -119,23 +124,28 @@ class MainFragment : Fragment() {
                 categoryAdapter.updateCategories(categories)
                 updateStatsView()
 
-                predefinedCategories.forEach { (nameRes, _, _) ->
-                    val catName = getString(nameRes)
-                    val category = categories.find { it.name == catName }
-                    category?.let {
-                        updatePredefinedCategoryAmount(catName, it.amount)
+                // Обновляем предустановленные категории только если View уже создан
+                if (isAdded && view != null) {
+                    predefinedCategories.forEach { (nameRes, _, _) ->
+                        val catName = getString(nameRes)
+                        val category = categories.find { it.name == catName }
+                        category?.let {
+                            updatePredefinedCategoryAmount(catName, it.amount)
+                        }
                     }
                 }
             }
         }
         lifecycleScope.launch {
             viewModel.balance.collect { balance ->
-                val balanceText = if (balance >= 0) {
-                    "💰 ${getString(R.string.balance)}: +${String.format("%.2f", balance)} ₽"
-                } else {
-                    "📉 ${getString(R.string.balance)}: ${String.format("%.2f", balance)} ₽"
+                if (isAdded && view != null) {
+                    val balanceText = if (balance >= 0) {
+                        "${getString(R.string.balance)}: +${String.format("%.2f", balance)} ₽"
+                    } else {
+                        "${getString(R.string.balance)}: ${String.format("%.2f", balance)} ₽"
+                    }
+                    view?.findViewById<TextView>(R.id.balanceTextView)?.text = balanceText
                 }
-                view?.findViewById<TextView>(R.id.balanceTextView)?.text = balanceText
             }
         }
     }
@@ -151,7 +161,10 @@ class MainFragment : Fragment() {
         addCategoryButton = view.findViewById(R.id.addCategoryButton)
         incomeButton = view.findViewById(R.id.incomeButton)
 
-        categoryRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+        categoryRecyclerView.layoutManager = GridLayoutManager(
+            requireContext(),
+            2
+        )
 
         categoryAdapter = CategoryAdapter(
             categories,
@@ -163,18 +176,49 @@ class MainFragment : Fragment() {
                     putFloat("category_amount", category.amount)
                 }
                 findNavController().navigate(R.id.categoryEditFragment, bundle)
+            },
+            onDeleteClick = { category ->
+                showDeleteConfirmationDialog(category)
+            },
+            onAddClick = { category ->
+                val bundle = Bundle().apply {
+                    putString("category_name", category.name)
+                    putInt("category_id", category.id)
+                    putInt("category_color", category.color)
+                    putFloat("category_amount", category.amount)
+                }
+                findNavController().navigate(R.id.categoryEditFragment, bundle)
             }
         )
+        categoryAdapter.setSelectMode(false)
         categoryRecyclerView.adapter = categoryAdapter
     }
 
+    // Метод для подтверждения удаления
+    private fun showDeleteConfirmationDialog(category: CategoryEntity) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Удаление категории")
+            .setMessage("Вы действительно хотите удалить категорию \"${category.name}\"? Все данные будут потеряны.")
+            .setPositiveButton("Удалить") { _, _ ->
+                viewModel.deleteCategoryById(category.id)
+                Toast.makeText(
+                    requireContext(),
+                    "Категория \"${category.name}\" удалена",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
     private fun setupPredefinedCategories(view: View) {
-        val categoriesContainer = view.findViewById<LinearLayout>(R.id.predefinedCategoriesContainer)
+        val categoriesContainer =
+            view.findViewById<LinearLayout>(R.id.predefinedCategoriesContainer)
 
         predefinedCategories.forEach { (nameRes, colorRes, iconRes) ->
             val categoryName = getString(nameRes)
             val categoryColor = Color.parseColor(colorRes)
-            val categoryView = createCategoryView(categoryName, categoryColor, iconRes)
+            val categoryView = createCategoryView(categoryName, categoryColor)
             categoriesContainer.addView(categoryView)
 
             categoryView.setOnClickListener {
@@ -190,24 +234,92 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun createCategoryView(categoryName: String, color: Int, iconRes: Int): View {
-        val view = layoutInflater.inflate(R.layout.item_category_predefined, null)
+    private fun createCategoryView(categoryName: String, color: Int): View {
+        val view = layoutInflater.inflate(R.layout.item_category, null)
         val nameText = view.findViewById<TextView>(R.id.categoryNameText)
         val amountText = view.findViewById<TextView>(R.id.categoryAmountText)
-        val cardView = view.findViewById<CardView>(R.id.categoryCard)
+        val iconContainer = view.findViewById<View>(R.id.iconContainer)
+        val categoryIcon = view.findViewById<ImageView>(R.id.categoryIcon)
+        val menuButton = view.findViewById<ImageButton>(R.id.menuButton)
+        val checkBox = view.findViewById<CheckBox>(R.id.checkboxSelect)
+
+        // Скрываем checkbox (он не нужен для предустановленных)
+        checkBox.visibility = View.GONE
 
         nameText.text = categoryName
-        cardView.setCardBackgroundColor(color)
+        amountText.text =
+            String.format("%.2f ₽", categories.find { it.name == categoryName }?.amount ?: 0f)
 
-        val category = categories.find { it.name == categoryName }
-        amountText.text = String.format("%.2f ₽", category?.amount ?: 0f)
+        // Создаем круглый фон программно
+        val drawable = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+            setSize(48, 48)
+        }
+        iconContainer.background = drawable
+        categoryIcon.setColorFilter(
+            ContextCompat.getColor(
+                requireContext(),
+                android.R.color.white
+            )
+        )
+
+        // Меню для предустановленных категорий - только "Удалить"
+        menuButton.setOnClickListener {
+            val popupMenu = PopupMenu(requireContext(), menuButton)
+            popupMenu.menu.add(0, 1, 0, "Удалить")
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                if (menuItem.itemId == 1) {
+                    val category = categories.find { it.name == categoryName }
+                    category?.let {
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Удаление категории")
+                            .setMessage("Вы действительно хотите удалить категорию \"${category.name}\"?")
+                            .setPositiveButton("Удалить") { _, _ ->
+                                // Удаляем из базы
+                                viewModel.deleteCategoryById(category.id)
+
+                                // Удаляем View из контейнера
+                                (view.parent as? ViewGroup)?.removeView(view)
+
+                                // Обновляем StatsView
+                                updateStatsView()
+
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Категория \"${category.name}\" удалена",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            .setNegativeButton("Отмена", null)
+                            .show()
+                    }
+                    true
+                } else false
+            }
+            popupMenu.show()
+        }
+
+        // Клик по карточке - открывает редактирование
+        view.setOnClickListener {
+            val currentAmount = categories.find { it.name == categoryName }?.amount ?: 0f
+            val bundle = Bundle().apply {
+                putString("category_name", categoryName)
+                putInt("category_color", color)
+                putFloat("category_amount", currentAmount)
+            }
+            view.findNavController().navigate(R.id.categoryEditFragment, bundle)
+        }
 
         return view
     }
 
     private fun updatePredefinedCategoryAmount(categoryName: String, newAmount: Float) {
-        val view = requireView()
-        val categoriesContainer = view.findViewById<LinearLayout>(R.id.predefinedCategoriesContainer)
+        val view = view
+        if (view == null || !isAdded) return
+
+        val categoriesContainer =
+            view.findViewById<LinearLayout>(R.id.predefinedCategoriesContainer)
         for (i in 0 until categoriesContainer.childCount) {
             val child = categoriesContainer.getChildAt(i)
             val nameText = child.findViewById<TextView>(R.id.categoryNameText)
@@ -252,28 +364,7 @@ class MainFragment : Fragment() {
 
     private fun setupClickListeners(view: View) {
         addCategoryButton.setOnClickListener {
-            val newId = (categories.maxOfOrNull { it.id } ?: 0) + 1
-            val colors = listOf(
-                Color.parseColor("#FF5252"),
-                Color.parseColor("#FF4081"),
-                Color.parseColor("#FFB74D"),
-                Color.parseColor("#4CAF50"),
-                Color.parseColor("#9C27B0"),
-                Color.parseColor("#2196F3"),
-                Color.parseColor("#78909C")
-            )
-            val newCategoryEntity = CategoryEntity(
-                0,
-                "${getString(R.string.category)} ${newId}",
-                0f,
-                colors[newId % colors.size]
-            )
-            viewModel.addCategory(newCategoryEntity)
-            Toast.makeText(
-                requireContext(),
-                "${getString(R.string.category_added)}: ${newCategoryEntity.name}",
-                Toast.LENGTH_SHORT
-            ).show()
+            findNavController().navigate(R.id.selectCategoryFragment)
         }
 
         incomeButton.setOnClickListener {

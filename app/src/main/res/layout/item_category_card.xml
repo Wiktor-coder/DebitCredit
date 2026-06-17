@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/categoryCard"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:layout_margin="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="@drawable/category_card_background">
+
+    <!-- Иконка категории с фоном -->
+    <FrameLayout
+        android:id="@+id/iconContainer"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/circle_background_icon"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/categoryIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_menu_edit" />
+
+    </FrameLayout>
+
+    <!-- Название категории -->
+    <TextView
+        android:id="@+id/categoryNameText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:text="Тестовая категория"
+        app:layout_constraintStart_toEndOf="@+id/iconContainer"
+        app:layout_constraintEnd_toStartOf="@+id/menuButton"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/categoryAmountText"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <!-- Сумма категории -->
+    <TextView
+        android:id="@+id/categoryAmountText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="14sp"
+        android:text="1000 ₽"
+        app:layout_constraintStart_toEndOf="@+id/iconContainer"
+        app:layout_constraintEnd_toStartOf="@+id/menuButton"
+        app:layout_constraintTop_toBottomOf="@+id/categoryNameText"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Кнопка меню (три точки) -->
+    <ImageButton
+        android:id="@+id/menuButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_more_vert"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/menu"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Checkbox для режима выбора (скрыт по умолчанию) -->
+    <CheckBox
+        android:id="@+id/checkboxSelect"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_margin="8dp"
+        android:visibility="gone"
+        android:buttonTint="#FFFFFF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

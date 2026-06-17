@@ -17,6 +17,9 @@
         <action
             android:id="@+id/action_mainFragment_to_settingsFragment"
             app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_selectCategoryFragment"
+            app:destination="@id/selectCategoryFragment" />
     </fragment>
 
     <fragment
@@ -51,5 +54,10 @@
         android:id="@+id/settingsFragment"
         android:name="ru.github.debitcredit.ui.settings.SettingsFragment"
         android:label="Настройки" />
+
+    <fragment
+        android:id="@+id/selectCategoryFragment"
+        android:name="ru.github.debitcredit.ui.select.SelectCategoryFragment"
+        android:label="Выбор категории" />
 
 </navigation>

@@ -95,9 +95,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun deleteCategory(category: CategoryEntity) {
+    fun deleteCategoryById(categoryId: Int) {
         viewModelScope.launch {
-            categoryDao.deleteById(category.id)
+            categoryDao.deleteById(categoryId)
         }
     }
 }
