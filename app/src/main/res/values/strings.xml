@@ -57,7 +57,6 @@
     <string name="day">День</string>
     <string name="week">Неделя</string>
     <string name="month">Месяц</string>
-    <string name="quarter">Квартал</string>
     <string name="year">Год</string>
     <string name="spent_percent">Потрачено от дохода</string>
     <string name="spent">Потрачено</string>

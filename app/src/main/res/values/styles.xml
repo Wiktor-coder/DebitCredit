@@ -57,17 +57,21 @@
         <item name="android:backgroundTint">#34495E</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">12sp</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
         <item name="cornerRadius">24dp</item>
     </style>
 
     <style name="RoundButtonGold" parent="Widget.Material3.Button">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_height">40dp</item>
         <item name="android:layout_weight">1</item>
         <item name="android:layout_margin">4dp</item>
-        <item name="android:backgroundTint">#DAA520</item>
+        <item name="android:backgroundTint">@color/colorAccent</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">12sp</item>
-        <item name="cornerRadius">24dp</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
+        <item name="cornerRadius">20dp</item>
     </style>
 </resources>

@@ -10,4 +10,5 @@ data class CategoryEntity(
     val name: String,
     val amount: Float = 0f,
     val color: Int,
+    val iconRes: Int = android.R.drawable.ic_menu_edit,
 )

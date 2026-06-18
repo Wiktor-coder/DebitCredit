@@ -107,7 +107,7 @@
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_margin="8dp"
-            android:src="@android:drawable/ic_menu_save"
+            android:src="@android:drawable/ic_input_add"
             android:background="@drawable/circle_background"
             android:scaleType="centerInside"
             android:padding="12dp"

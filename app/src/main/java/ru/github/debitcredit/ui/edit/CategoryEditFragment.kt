@@ -14,7 +14,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -27,20 +26,33 @@ class CategoryEditFragment : Fragment() {
         ownerProducer = { requireActivity() }
     )
     private var isIncomeMode = false
-    private lateinit var categoryName: String
+    private lateinit var categoryKey: String  // ключ категории
     private var categoryId: Int = 0
     private var categoryColor: Int = 0
+    private var categoryIconRes: Int = android.R.drawable.ic_menu_edit
     private var originalAmount: Float = 0f
     private var currentAmount: Float = 0f
     private lateinit var amountEditText: EditText
+
+    private val categoryDisplayNames = mapOf(
+        "products" to R.string.products,
+        "utilities" to R.string.utilities,
+        "transport" to R.string.transport,
+        "health" to R.string.health,
+        "clothing" to R.string.clothing,
+        "entertainment" to R.string.entertainment,
+        "other" to R.string.other,
+        "income" to R.string.income
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
             isIncomeMode = it.getBoolean("is_income_mode", false)
-            categoryName = it.getString("category_name") ?: getString(R.string.other)
+            categoryKey = it.getString("category_name") ?: "other"
             categoryId = it.getInt("category_id", 0)
             categoryColor = it.getInt("category_color", Color.parseColor("#FF6B6B"))
+            categoryIconRes = it.getInt("category_icon", android.R.drawable.ic_menu_edit)
             originalAmount = it.getFloat("category_amount", 0f)
             currentAmount = it.getFloat("category_amount", 0f)
         }
@@ -74,14 +86,19 @@ class CategoryEditFragment : Fragment() {
 
         if (isIncomeMode) {
             categoryIcon.setImageResource(R.drawable.ic_ruble)
-            // Для дохода используем специальный фон
             iconContainer.setBackgroundResource(R.drawable.button_background_edit)
             titleTextView.text = getString(R.string.add_income)
             titleTextView.visibility = View.VISIBLE
         } else {
-            titleTextView.text = categoryName
+            // Отображаем локализованное имя категории
+            val displayNameRes = categoryDisplayNames[categoryKey]
+            val displayName = if (displayNameRes != null) {
+                getString(displayNameRes)
+            } else {
+                categoryKey
+            }
+            titleTextView.text = displayName
 
-            // Создаем круглый фон программно для иконки категории
             val drawable = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(categoryColor)
@@ -89,9 +106,8 @@ class CategoryEditFragment : Fragment() {
             }
             iconContainer.background = drawable
 
-            // Устанавливаем белую иконку
-            categoryIcon.setImageResource(android.R.drawable.ic_menu_edit)
-            categoryIcon.setColorFilter(android.graphics.Color.WHITE)
+            categoryIcon.setImageResource(categoryIconRes)
+            categoryIcon.setColorFilter(Color.WHITE)
 
             val currentAmountHint = view.findViewById<TextView>(R.id.currentAmountHint)
             currentAmountHint?.text = "${getString(R.string.current_amount)}: ${String.format("%.2f", originalAmount)} ₽"
@@ -139,7 +155,7 @@ class CategoryEditFragment : Fragment() {
                     val updatedAmount = originalAmount + newAmount
 
                     val result = Bundle().apply {
-                        putString("category_name", categoryName)
+                        putString("category_key", categoryKey)  // передаем ключ
                         putFloat("new_amount", updatedAmount)
                     }
                     parentFragmentManager.setFragmentResult("category_update", result)

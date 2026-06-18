@@ -1,5 +1,6 @@
 package ru.github.debitcredit.adapter
 
+import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,13 +19,26 @@ class CategoryAdapter(
     private var categories: List<CategoryEntity>,
     private val onItemClick: (CategoryEntity) -> Unit,
     private val onDeleteClick: (CategoryEntity) -> Unit,
-    private val onAddClick: (CategoryEntity) -> Unit
+    private val onAddClick: (CategoryEntity) -> Unit,
+    private val context: Context
 ) : RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
 
     private var isSelectionMode = false
     private var selectedIds = mutableSetOf<Int>()
     private var onSelectionChanged: ((Set<Int>) -> Unit)? = null
     private var isSelectMode = false
+
+    // Маппинг ключей на ресурсы строк
+    private val categoryNameMap = mapOf(
+        "products" to R.string.products,
+        "utilities" to R.string.utilities,
+        "transport" to R.string.transport,
+        "health" to R.string.health,
+        "clothing" to R.string.clothing,
+        "entertainment" to R.string.entertainment,
+        "other" to R.string.other,
+        "income" to R.string.income
+    )
 
     class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameText: TextView = itemView.findViewById(R.id.categoryNameText)
@@ -33,13 +47,6 @@ class CategoryAdapter(
         val menuButton: ImageView = itemView.findViewById(R.id.menuButton)
         val iconContainer: View = itemView.findViewById(R.id.iconContainer)
         val categoryIcon: ImageView = itemView.findViewById(R.id.categoryIcon)
-    }
-
-    fun setSelectionMode(enabled: Boolean, ids: MutableSet<Int>, onChanged: (Set<Int>) -> Unit) {
-        isSelectionMode = enabled
-        selectedIds = ids
-        onSelectionChanged = onChanged
-        notifyDataSetChanged()
     }
 
     fun setSelectMode(enabled: Boolean) {
@@ -57,16 +64,23 @@ class CategoryAdapter(
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val category = categories[position]
 
-        holder.nameText.text = category.name
+        Log.d("CategoryAdapter", "Binding category: ${category.name}, amount: ${category.amount}, position: $position")
+
+        // Получаем локализованное имя по ключу
+        val displayName = getLocalizedName(category.name)
+        holder.nameText.text = displayName
         holder.amountText.text = String.format("%.2f ₽", category.amount)
 
-        // Создаем круглый фон программно
+        // Создаем круглый фон для иконки
         val drawable = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
             setColor(category.color)
             setSize(48, 48)
         }
         holder.iconContainer.background = drawable
+
+        // Устанавливаем иконку
+        holder.categoryIcon.setImageResource(category.iconRes)
         holder.categoryIcon.setColorFilter(
             ContextCompat.getColor(
                 holder.itemView.context,
@@ -104,14 +118,20 @@ class CategoryAdapter(
         }
     }
 
+    private fun getLocalizedName(key: String): String {
+        return categoryNameMap[key]?.let { context.getString(it) } ?: key
+    }
+
     private fun showPopupMenu(view: View, category: CategoryEntity) {
         val popupMenu = PopupMenu(view.context, view)
 
+        // На главном экране показываем только "Удалить"
         if (isSelectMode) {
-            popupMenu.menu.add(0, 1, 0, "Добавить")
+            // В режиме выбора категорий показываем "Добавить"
+            popupMenu.menu.add(0, 1, 0, context.getString(R.string.add))
         } else {
-            popupMenu.menu.add(0, 1, 0, "Добавить")
-            popupMenu.menu.add(0, 2, 1, "Удалить")
+            // На главном экране только "Удалить"
+            popupMenu.menu.add(0, 2, 0, context.getString(R.string.delete))
         }
 
         popupMenu.setOnMenuItemClickListener { menuItem ->
@@ -130,10 +150,14 @@ class CategoryAdapter(
         popupMenu.show()
     }
 
-    override fun getItemCount() = categories.size
+    override fun getItemCount(): Int {
+        Log.d("CategoryAdapter", "Item count: ${categories.size}")
+        return categories.size
+    }
 
     fun updateCategories(newCategories: List<CategoryEntity>) {
         categories = newCategories
+        Log.d("CategoryAdapter", "updateCategories - size: ${categories.size}")
         notifyDataSetChanged()
     }
 }

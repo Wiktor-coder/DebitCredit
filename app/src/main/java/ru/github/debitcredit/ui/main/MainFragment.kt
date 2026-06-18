@@ -1,7 +1,6 @@
 package ru.github.debitcredit.ui.main
 
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -9,22 +8,17 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
@@ -41,17 +35,8 @@ class MainFragment : Fragment() {
     private lateinit var addCategoryButton: ImageButton
     private lateinit var incomeButton: ImageButton
 
-    private val predefinedCategories = listOf(
-        Triple(R.string.products, "#FF5252", android.R.drawable.ic_menu_agenda),
-        Triple(R.string.utilities, "#FF4081", android.R.drawable.ic_menu_manage),
-        Triple(R.string.transport, "#FFB74D", android.R.drawable.ic_menu_directions),
-        Triple(R.string.health, "#4CAF50", android.R.drawable.ic_menu_edit),
-        Triple(R.string.clothing, "#9C27B0", android.R.drawable.ic_menu_edit),
-        Triple(R.string.entertainment, "#2196F3", android.R.drawable.ic_menu_gallery),
-        Triple(R.string.other, "#78909C", android.R.drawable.ic_menu_edit)
-    )
-
     private var categories = mutableListOf<CategoryEntity>()
+    private var isDataLoaded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,7 +54,6 @@ class MainFragment : Fragment() {
                 findNavController().navigate(R.id.settingsFragment)
                 true
             }
-
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -86,19 +70,20 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initializeViews(view)
-        observeCategories()
         setupClickListeners(view)
         setupStatsViewClick()
-        setupPredefinedCategories(view)
+
+        observeCategories()
+        observeBalance()
 
         parentFragmentManager.setFragmentResultListener(
             "category_update",
             viewLifecycleOwner
         ) { _, bundle ->
-            val categoryName = bundle.getString("category_name") ?: return@setFragmentResultListener
+            val categoryKey = bundle.getString("category_key") ?: return@setFragmentResultListener
             val newAmount = bundle.getFloat("new_amount")
 
-            val category = categories.find { it.name == categoryName }
+            val category = categories.find { it.name == categoryKey }
             category?.let {
                 val updatedCategory = it.copy(amount = newAmount)
                 viewModel.updateCategory(updatedCategory)
@@ -121,21 +106,16 @@ class MainFragment : Fragment() {
             viewModel.categories.collect { categoryList ->
                 categories.clear()
                 categories.addAll(categoryList)
+
                 categoryAdapter.updateCategories(categories)
                 updateStatsView()
 
-                // Обновляем предустановленные категории только если View уже создан
-                if (isAdded && view != null) {
-                    predefinedCategories.forEach { (nameRes, _, _) ->
-                        val catName = getString(nameRes)
-                        val category = categories.find { it.name == catName }
-                        category?.let {
-                            updatePredefinedCategoryAmount(catName, it.amount)
-                        }
-                    }
-                }
+                isDataLoaded = true
             }
         }
+    }
+
+    private fun observeBalance() {
         lifecycleScope.launch {
             viewModel.balance.collect { balance ->
                 if (isAdded && view != null) {
@@ -152,7 +132,9 @@ class MainFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        updateStatsView()
+        if (isDataLoaded) {
+            updateStatsView()
+        }
     }
 
     private fun initializeViews(view: View) {
@@ -161,10 +143,9 @@ class MainFragment : Fragment() {
         addCategoryButton = view.findViewById(R.id.addCategoryButton)
         incomeButton = view.findViewById(R.id.incomeButton)
 
-        categoryRecyclerView.layoutManager = GridLayoutManager(
-            requireContext(),
-            2
-        )
+        // Вертикальный список
+        categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        categoryRecyclerView.setHasFixedSize(false)  // ← ДОБАВЛЯЕМ
 
         categoryAdapter = CategoryAdapter(
             categories,
@@ -174,6 +155,7 @@ class MainFragment : Fragment() {
                     putInt("category_id", category.id)
                     putInt("category_color", category.color)
                     putFloat("category_amount", category.amount)
+                    putInt("category_icon", category.iconRes)
                 }
                 findNavController().navigate(R.id.categoryEditFragment, bundle)
             },
@@ -186,15 +168,16 @@ class MainFragment : Fragment() {
                     putInt("category_id", category.id)
                     putInt("category_color", category.color)
                     putFloat("category_amount", category.amount)
+                    putInt("category_icon", category.iconRes)
                 }
                 findNavController().navigate(R.id.categoryEditFragment, bundle)
-            }
+            },
+            requireContext()
         )
         categoryAdapter.setSelectMode(false)
         categoryRecyclerView.adapter = categoryAdapter
     }
 
-    // Метод для подтверждения удаления
     private fun showDeleteConfirmationDialog(category: CategoryEntity) {
         AlertDialog.Builder(requireContext())
             .setTitle("Удаление категории")
@@ -209,126 +192,6 @@ class MainFragment : Fragment() {
             }
             .setNegativeButton("Отмена", null)
             .show()
-    }
-
-    private fun setupPredefinedCategories(view: View) {
-        val categoriesContainer =
-            view.findViewById<LinearLayout>(R.id.predefinedCategoriesContainer)
-
-        predefinedCategories.forEach { (nameRes, colorRes, iconRes) ->
-            val categoryName = getString(nameRes)
-            val categoryColor = Color.parseColor(colorRes)
-            val categoryView = createCategoryView(categoryName, categoryColor)
-            categoriesContainer.addView(categoryView)
-
-            categoryView.setOnClickListener {
-                val currentAmount = categories.find { it.name == categoryName }?.amount ?: 0f
-
-                val bundle = Bundle().apply {
-                    putString("category_name", categoryName)
-                    putInt("category_color", categoryColor)
-                    putFloat("category_amount", currentAmount)
-                }
-                view.findNavController().navigate(R.id.categoryEditFragment, bundle)
-            }
-        }
-    }
-
-    private fun createCategoryView(categoryName: String, color: Int): View {
-        val view = layoutInflater.inflate(R.layout.item_category, null)
-        val nameText = view.findViewById<TextView>(R.id.categoryNameText)
-        val amountText = view.findViewById<TextView>(R.id.categoryAmountText)
-        val iconContainer = view.findViewById<View>(R.id.iconContainer)
-        val categoryIcon = view.findViewById<ImageView>(R.id.categoryIcon)
-        val menuButton = view.findViewById<ImageButton>(R.id.menuButton)
-        val checkBox = view.findViewById<CheckBox>(R.id.checkboxSelect)
-
-        // Скрываем checkbox (он не нужен для предустановленных)
-        checkBox.visibility = View.GONE
-
-        nameText.text = categoryName
-        amountText.text =
-            String.format("%.2f ₽", categories.find { it.name == categoryName }?.amount ?: 0f)
-
-        // Создаем круглый фон программно
-        val drawable = GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(color)
-            setSize(48, 48)
-        }
-        iconContainer.background = drawable
-        categoryIcon.setColorFilter(
-            ContextCompat.getColor(
-                requireContext(),
-                android.R.color.white
-            )
-        )
-
-        // Меню для предустановленных категорий - только "Удалить"
-        menuButton.setOnClickListener {
-            val popupMenu = PopupMenu(requireContext(), menuButton)
-            popupMenu.menu.add(0, 1, 0, "Удалить")
-            popupMenu.setOnMenuItemClickListener { menuItem ->
-                if (menuItem.itemId == 1) {
-                    val category = categories.find { it.name == categoryName }
-                    category?.let {
-                        AlertDialog.Builder(requireContext())
-                            .setTitle("Удаление категории")
-                            .setMessage("Вы действительно хотите удалить категорию \"${category.name}\"?")
-                            .setPositiveButton("Удалить") { _, _ ->
-                                // Удаляем из базы
-                                viewModel.deleteCategoryById(category.id)
-
-                                // Удаляем View из контейнера
-                                (view.parent as? ViewGroup)?.removeView(view)
-
-                                // Обновляем StatsView
-                                updateStatsView()
-
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Категория \"${category.name}\" удалена",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                            .setNegativeButton("Отмена", null)
-                            .show()
-                    }
-                    true
-                } else false
-            }
-            popupMenu.show()
-        }
-
-        // Клик по карточке - открывает редактирование
-        view.setOnClickListener {
-            val currentAmount = categories.find { it.name == categoryName }?.amount ?: 0f
-            val bundle = Bundle().apply {
-                putString("category_name", categoryName)
-                putInt("category_color", color)
-                putFloat("category_amount", currentAmount)
-            }
-            view.findNavController().navigate(R.id.categoryEditFragment, bundle)
-        }
-
-        return view
-    }
-
-    private fun updatePredefinedCategoryAmount(categoryName: String, newAmount: Float) {
-        val view = view
-        if (view == null || !isAdded) return
-
-        val categoriesContainer =
-            view.findViewById<LinearLayout>(R.id.predefinedCategoriesContainer)
-        for (i in 0 until categoriesContainer.childCount) {
-            val child = categoriesContainer.getChildAt(i)
-            val nameText = child.findViewById<TextView>(R.id.categoryNameText)
-            if (nameText.text == categoryName) {
-                val amountText = child.findViewById<TextView>(R.id.categoryAmountText)
-                amountText.text = String.format("%.2f ₽", newAmount)
-                break
-            }
-        }
     }
 
     private fun setupStatsViewClick() {
@@ -370,9 +233,11 @@ class MainFragment : Fragment() {
         incomeButton.setOnClickListener {
             val bundle = Bundle().apply {
                 putBoolean("is_income_mode", true)
-                putString("category_name", getString(R.string.income))
+                putString("category_name", "income")
                 putInt("category_color", Color.parseColor("#4ECDC4"))
                 putFloat("category_amount", 0f)
+                putInt("category_icon", R.drawable.ic_ruble)
+                putInt("category_id", 0)
             }
             findNavController().navigate(R.id.categoryEditFragment, bundle)
         }

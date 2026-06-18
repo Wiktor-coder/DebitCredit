@@ -57,7 +57,6 @@
     <string name="day">Day</string>
     <string name="week">Week</string>
     <string name="month">Month</string>
-    <string name="quarter">Quarter</string>
     <string name="year">Year</string>
     <string name="spent_percent">Spent from income</string>
     <string name="spent">Spent</string>
