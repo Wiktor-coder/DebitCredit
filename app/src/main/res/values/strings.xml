@@ -1,3 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DebitCredit</string>
+
+    <!-- Общие строки -->
+    <string name="settings">Настройки</string>
+    <string name="about">О приложении</string>
+    <string name="apply">Применить настройки</string>
+    <string name="cancel">Отмена</string>
+    <string name="edit">Редактировать</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="back">Назад</string>
+    <string name="delete">Удалить</string>
+    <string name="delete_category_confirmation">Вы действительно хотите удалить категорию "%s"?</string>
+    <string name="menu">Меню</string>
+    <string name="add">Добавить</string>
+    <string name="income">Доход</string>
+    <string name="edit_mode">Режим редактирования</string>
+    <string name="enter_amount">Введите сумму</string>
+    <string name="amount_added">Добавлено</string>
+    <string name="new_amount">Новая сумма</string>
+    <string name="income_added">Доход добавлен</string>
+    <string name="category_deleted">Категория удалена</string>
+    <string name="no_categories">Нет категорий для удаления</string>
+    <string name="category_added">Добавлена</string>
+    <string name="settings_applied">Настройки применены. Приложение будет перезапущено.</string>
+    <string name="delete_category">Удалить категорию</string>
+    <string name="add_category">Добавить категорию</string>
+    <string name="balance">Баланс</string>
+    <string name="products">Продукты</string>
+    <string name="utilities">ЖКХ</string>
+    <string name="transport">Транспорт</string>
+    <string name="health">Здоровье</string>
+    <string name="clothing">Одежда</string>
+    <string name="entertainment">Развлечения</string>
+    <string name="other">Иное</string>
+    <string name="current_amount">Текущая сумма</string>
+    <string name="add_income">Добавить доход</string>
+    <string name="add_amount">Сумма для добавления</string>
+    <string name="category">Категория</string>
+    <string name="category_selected">Выбрана категория</string>
+    <string name="rub">₽</string>
+
+    <!-- Настройки -->
+    <string name="currency">Валюта</string>
+    <string name="theme">Тема</string>
+    <string name="dark_theme">Тёмная тема</string>
+    <string name="language">Язык</string>
+    <string name="system_language">Системный</string>
+    <string name="russian">Русский</string>
+    <string name="english">English</string>
+    <string name="select_currency">Выберите валюту</string>
+    <string name="base_currency">Базовая валюта: Российский рубль (RUB)</string>
+    <string name="rate_not_available">Курс не доступен</string>
+
+    <!-- Статистика -->
+    <string name="day">День</string>
+    <string name="week">Неделя</string>
+    <string name="month">Месяц</string>
+    <string name="year">Год</string>
+    <string name="spent_percent">Потрачено от дохода</string>
+    <string name="spent">Потрачено</string>
+    <string name="remaining">Остаток</string>
+    <string name="expenses">Расходы</string>
+    <string name="incomes">Доходы</string>
+    <string name="no_data">Нет данных</string>
+
+    <!-- О приложении -->
+    <string name="app_description">DebitCredit\nВерсия 1.0\n\nПриложение для учёта доходов и расходов</string>
 </resources>

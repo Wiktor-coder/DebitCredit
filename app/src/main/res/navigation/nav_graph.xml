@@ -11,6 +11,15 @@
         <action
             android:id="@+id/action_mainFragment_to_categoryEditFragment"
             app:destination="@id/categoryEditFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_statisticsFragment"
+            app:destination="@id/statisticsFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_selectCategoryFragment"
+            app:destination="@id/selectCategoryFragment" />
     </fragment>
 
     <fragment
@@ -21,15 +30,37 @@
             android:name="category_name"
             app:argType="string" />
         <argument
+            android:name="category_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
             android:name="category_color"
             app:argType="integer" />
         <argument
             android:name="category_amount"
             app:argType="float" />
         <argument
+            android:name="category_icon"
+            app:argType="integer" />
+        <argument
             android:name="is_income_mode"
             app:argType="boolean"
             android:defaultValue="false" />
     </fragment>
+
+    <fragment
+        android:id="@+id/statisticsFragment"
+        android:name="ru.github.debitcredit.ui.statistics.StatisticsFragment"
+        android:label="Статистика" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="ru.github.debitcredit.ui.settings.SettingsFragment"
+        android:label="Настройки" />
+
+    <fragment
+        android:id="@+id/selectCategoryFragment"
+        android:name="ru.github.debitcredit.ui.select.SelectCategoryFragment"
+        android:label="Выбор категории" />
 
 </navigation>

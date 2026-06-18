@@ -2,8 +2,8 @@ package ru.github.debitcredit.customview
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.*
-import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
@@ -25,6 +25,9 @@ class StatsView @JvmOverloads constructor(
     private var progress = 0f
     private var valueAnimator: ValueAnimator? = null
     private var currentRotation = 0f
+
+    // Цвет текста в зависимости от темы
+    private var textColor = getTextColorFromTheme()
 
     // Флаг, определяющий режим отображения (большой или маленький)
     var isSmallMode = false
@@ -51,13 +54,6 @@ class StatsView @JvmOverloads constructor(
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
-        color = Color.WHITE
-    }
-
-    private val smallTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        textAlign = Paint.Align.CENTER
-        color = Color.parseColor("#AAAAAA")
     }
 
     var data: List<CategoryData> = emptyList()
@@ -80,7 +76,25 @@ class StatsView @JvmOverloads constructor(
     private fun updatePaintAndText() {
         paint.strokeWidth = lineWidth
         textPaint.textSize = fontSize
-        smallTextPaint.textSize = fontSize * 0.5f
+        textPaint.color = getTextColorFromTheme()
+    }
+
+    private fun getTextColorFromTheme(): Int {
+        // Определяем, темная тема или светлая
+        val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+        return if (isNightMode) {
+            Color.WHITE
+        } else {
+            Color.BLACK
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        // Обновляем цвет текста при смене темы
+        textPaint.color = getTextColorFromTheme()
+        invalidate()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -125,7 +139,6 @@ class StatsView @JvmOverloads constructor(
 
             // Текст суммы (крупнее)
             textPaint.textSize = fontSize
-            textPaint.color = Color.WHITE
             canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 3, textPaint)
 
             // Рисуем точку-индикатор сверху (уменьшенную)
@@ -142,10 +155,9 @@ class StatsView @JvmOverloads constructor(
                 canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
             }
         } else {
-            // Большой режим: показываем сумму в центре и подпись "всего"
+            // Большой режим: показываем сумму в центре
             val totalText = String.format("%.0f", total)
             textPaint.textSize = fontSize
-            textPaint.color = Color.WHITE
             canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 4, textPaint)
 
             // Рисуем точку-индикатор сверху (нормальную)
@@ -186,11 +198,6 @@ class StatsView @JvmOverloads constructor(
             }
             start()
         }
-    }
-
-    fun stopAnimation() {
-        valueAnimator?.cancel()
-        valueAnimator = null
     }
 
     private fun lightenColor(color: Int): Int {

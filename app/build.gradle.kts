@@ -69,7 +69,7 @@ dependencies {
     // CardView для карточек категорий
     implementation(libs.androidx.cardview)
 
-    // MPAndroidChart для графиков (если будете использовать)
+    // MPAndroidChart для графиков
     implementation(libs.mping.chart)
 
     // ViewModel и LiveData
@@ -84,6 +84,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
