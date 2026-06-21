@@ -70,7 +70,7 @@ dependencies {
     implementation(libs.androidx.cardview)
 
     // MPAndroidChart для графиков
-    implementation(libs.mping.chart)
+//    implementation(libs.mping.chart)
 
     // ViewModel и LiveData
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

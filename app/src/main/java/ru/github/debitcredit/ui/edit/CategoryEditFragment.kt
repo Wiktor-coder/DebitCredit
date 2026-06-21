@@ -26,7 +26,7 @@ class CategoryEditFragment : Fragment() {
         ownerProducer = { requireActivity() }
     )
     private var isIncomeMode = false
-    private lateinit var categoryKey: String  // ключ категории
+    private lateinit var categoryKey: String
     private var categoryId: Int = 0
     private var categoryColor: Int = 0
     private var categoryIconRes: Int = android.R.drawable.ic_menu_edit
@@ -90,7 +90,6 @@ class CategoryEditFragment : Fragment() {
             titleTextView.text = getString(R.string.add_income)
             titleTextView.visibility = View.VISIBLE
         } else {
-            // Отображаем локализованное имя категории
             val displayNameRes = categoryDisplayNames[categoryKey]
             val displayName = if (displayNameRes != null) {
                 getString(displayNameRes)
@@ -140,39 +139,39 @@ class CategoryEditFragment : Fragment() {
         view.findViewById<ImageButton>(R.id.confirmButton).setOnClickListener {
             val newAmount = amountEditText.text.toString().toFloatOrNull() ?: 0f
 
+            if (newAmount <= 0) {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.enter_amount),
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
             if (isIncomeMode) {
-                if (newAmount > 0) {
-                    viewModel.addIncome(newAmount)
-                    Toast.makeText(
-                        requireContext(),
-                        "${getString(R.string.income_added)}: ${String.format("%.2f", newAmount)} ₽",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    findNavController().popBackStack()
-                }
+                viewModel.addTransaction("income", newAmount, "income")
+                Toast.makeText(
+                    requireContext(),
+                    "${getString(R.string.income_added)}: ${String.format("%.2f", newAmount)} ₽",
+                    Toast.LENGTH_SHORT
+                ).show()
+                findNavController().popBackStack()
             } else {
-                if (newAmount > 0) {
-                    val updatedAmount = originalAmount + newAmount
+                viewModel.addTransaction(categoryKey, newAmount, "expense")
 
-                    val result = Bundle().apply {
-                        putString("category_key", categoryKey)  // передаем ключ
-                        putFloat("new_amount", updatedAmount)
-                    }
-                    parentFragmentManager.setFragmentResult("category_update", result)
-
-                    Toast.makeText(
-                        requireContext(),
-                        "${getString(R.string.amount_added)}: ${String.format("%.2f", newAmount)} ₽\n${getString(R.string.new_amount)}: ${String.format("%.2f", updatedAmount)} ₽",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    findNavController().popBackStack()
-                } else {
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.enter_amount),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                val updatedAmount = originalAmount + newAmount
+                val result = Bundle().apply {
+                    putString("category_key", categoryKey)
+                    putFloat("new_amount", updatedAmount)
                 }
+                parentFragmentManager.setFragmentResult("category_update", result)
+
+                Toast.makeText(
+                    requireContext(),
+                    "${getString(R.string.amount_added)}: ${String.format("%.2f", newAmount)} ₽\n${getString(R.string.new_amount)}: ${String.format("%.2f", updatedAmount)} ₽",
+                    Toast.LENGTH_LONG
+                ).show()
+                findNavController().popBackStack()
             }
         }
     }

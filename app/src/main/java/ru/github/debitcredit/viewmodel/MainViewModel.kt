@@ -7,31 +7,40 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
 import ru.github.debitcredit.data.database.AppDatabase
 import ru.github.debitcredit.data.model.CategoryEntity
 import ru.github.debitcredit.data.model.IncomeEntity
+import ru.github.debitcredit.data.model.TransactionEntity
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = AppDatabase.getInstance(application)
     private val categoryDao = database.categoryDao()
     private val incomeDao = database.incomeDao()
+    private val transactionDao = database.transactionDao()
 
     private val _categories = MutableStateFlow<List<CategoryEntity>>(emptyList())
     val categories: StateFlow<List<CategoryEntity>> = _categories.asStateFlow()
 
+    private val _allIncomes = MutableStateFlow<List<IncomeEntity>>(emptyList())
+    val allIncomes: StateFlow<List<IncomeEntity>> = _allIncomes.asStateFlow()
+
+    private val _transactions = MutableStateFlow<List<TransactionEntity>>(emptyList())
+    val transactions: StateFlow<List<TransactionEntity>> = _transactions.asStateFlow()
+
     private val _totalIncome = MutableStateFlow(0f)
     val totalIncome: StateFlow<Float> = _totalIncome.asStateFlow()
 
-    private val _expenses = MutableStateFlow(0f)
-    val expenses: StateFlow<Float> = _expenses.asStateFlow()
+    private val _totalExpenses = MutableStateFlow(0f)
+    val totalExpenses: StateFlow<Float> = _totalExpenses.asStateFlow()
 
     private val _balance = MutableStateFlow(0f)
     val balance: StateFlow<Float> = _balance.asStateFlow()
 
-    private var isDataInitialized = false
+    private var isDefaultDataLoaded = false
 
     init {
         // Загружаем категории
@@ -39,64 +48,131 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             categoryDao.getAllCategories().collect { list ->
                 Log.d("MainViewModel", "Categories loaded: ${list.size}")
                 _categories.value = list
-                _expenses.value = list.sumOf { it.amount.toDouble() }.toFloat()
-                Log.d("MainViewModel", "Expenses calculated: ${_expenses.value}")
+                updateExpensesFromTransactions()
                 updateBalance()
-
-                if (list.isEmpty() && !isDataInitialized) {
-                    initializeDefaultData()
-                }
             }
         }
 
-        // Загружаем доходы
+        // Загружаем транзакции
         viewModelScope.launch {
-            incomeDao.getTotalIncome().collect { total ->
-                Log.d("MainViewModel", "Total income loaded: $total")
+            transactionDao.getAllTransactions().collect { list: List<TransactionEntity> ->
+                _transactions.value = list
+                updateExpensesFromTransactions()
+                updateBalance()
+            }
+        }
+
+        // Загружаем доходы из транзакций
+        viewModelScope.launch {
+            transactionDao.getTotalIncome().collect { total: Float ->
                 _totalIncome.value = total
                 updateBalance()
             }
         }
+
+        // Загружаем все доходы (для совместимости)
+        viewModelScope.launch {
+            incomeDao.getAllIncomes().collect { list ->
+                _allIncomes.value = list
+            }
+        }
+
+        // ✅ Запускаем инициализацию после загрузки данных
+        viewModelScope.launch {
+            // Ждем первой загрузки категорий
+            val initialCategories = categoryDao.getAllCategories().first()
+            if (initialCategories.isEmpty() && !isDefaultDataLoaded) {
+                initializeDefaultData()
+            }
+        }
+    }
+
+    private fun updateExpensesFromTransactions() {
+        val expenses = _transactions.value
+            .filter { it.type == "expense" }
+            .sumOf { it.amount.toDouble() }
+            .toFloat()
+        _totalExpenses.value = expenses
+        Log.d("MainViewModel", "Expenses updated: $expenses")
     }
 
     private fun updateBalance() {
-        _balance.value = _totalIncome.value - _expenses.value
-        Log.d("MainViewModel", "Balance updated: ${_balance.value} (income: ${_totalIncome.value}, expenses: ${_expenses.value})")
+        _balance.value = _totalIncome.value - _totalExpenses.value
+        Log.d("MainViewModel", "Balance updated: ${_balance.value}")
     }
 
     private suspend fun initializeDefaultData() {
-        isDataInitialized = true
+        // ✅ Проверяем, что данные еще не загружены
+        if (isDefaultDataLoaded) {
+            Log.d("MainViewModel", "initializeDefaultData - SKIPPED (already loaded)")
+            return
+        }
+
+        // ✅ Проверяем, есть ли уже категории в БД
+        val existingCategories = categoryDao.getAllCategories().first()
+        if (existingCategories.isNotEmpty()) {
+            Log.d("MainViewModel", "initializeDefaultData - SKIPPED (categories already exist: ${existingCategories.size})")
+            isDefaultDataLoaded = true
+            return
+        }
+
+        isDefaultDataLoaded = true
         Log.d("MainViewModel", "initializeDefaultData - START")
 
         val defaultCategories = listOf(
-            CategoryEntity(0, "products", 2500f, android.graphics.Color.parseColor("#FF5252"), R.drawable.ic_trolley),
-            CategoryEntity(0, "utilities", 3500f, android.graphics.Color.parseColor("#FF4081"), R.drawable.ic_house),
-            CategoryEntity(0, "transport", 2000f, android.graphics.Color.parseColor("#FFB74D"), R.drawable.ic_car),
-            CategoryEntity(0, "health", 1500f, android.graphics.Color.parseColor("#4CAF50"), R.drawable.ic_heart),
-            CategoryEntity(0, "clothing", 1800f, android.graphics.Color.parseColor("#9C27B0"), R.drawable.ic_clothes),
-            CategoryEntity(0, "entertainment", 1200f, android.graphics.Color.parseColor("#2196F3"), R.drawable.ic_amusement),
-            CategoryEntity(0, "other", 800f, android.graphics.Color.parseColor("#78909C"), R.drawable.ic_yin_yang)
+            CategoryEntity(0, "products", 0f, android.graphics.Color.parseColor("#FF5252"), R.drawable.ic_trolley),
+            CategoryEntity(0, "utilities", 0f, android.graphics.Color.parseColor("#FF4081"), R.drawable.ic_house),
+            CategoryEntity(0, "transport", 0f, android.graphics.Color.parseColor("#FFB74D"), R.drawable.ic_car),
+            CategoryEntity(0, "health", 0f, android.graphics.Color.parseColor("#4CAF50"), R.drawable.ic_heart),
+            CategoryEntity(0, "clothing", 0f, android.graphics.Color.parseColor("#9C27B0"), R.drawable.ic_clothes),
+            CategoryEntity(0, "entertainment", 0f, android.graphics.Color.parseColor("#2196F3"), R.drawable.ic_amusement),
+            CategoryEntity(0, "other", 0f, android.graphics.Color.parseColor("#78909C"), R.drawable.ic_yin_yang)
         )
 
-        Log.d("MainViewModel", "initializeDefaultData - categories count: ${defaultCategories.size}")
         defaultCategories.forEach {
-            Log.d("MainViewModel", "Inserting category: ${it.name}, amount: ${it.amount}")
             categoryDao.insert(it)
         }
-        Log.d("MainViewModel", "initializeDefaultData - END")
+
+        // ✅ Принудительно обновляем состояние после вставки
+        val updatedCategories = categoryDao.getAllCategories().first()
+        _categories.value = updatedCategories.toList()
+
+        Log.d("MainViewModel", "initializeDefaultData - END, categories: ${updatedCategories.size}")
     }
 
-    fun addIncome(amount: Float, note: String = "") {
-        Log.d("MainViewModel", "=== addIncome ===")
-        Log.d("MainViewModel", "Amount: $amount, Note: $note")
+    // Добавляем транзакцию (расход или доход)
+    fun addTransaction(categoryName: String, amount: Float, type: String = "expense") {
         viewModelScope.launch {
-            val income = IncomeEntity(amount = amount, note = note)
-            incomeDao.insert(income)
-            Log.d("MainViewModel", "Income inserted successfully")
-            // После вставки дохода, он автоматически обновится через Flow
+            val transaction = TransactionEntity(
+                categoryName = categoryName,
+                amount = amount,
+                date = System.currentTimeMillis(),
+                type = type
+            )
+            transactionDao.insert(transaction)
+
+            // Если это расход, обновляем сумму в категории
+            if (type == "expense") {
+                updateCategoryAmount(categoryName, amount)
+            }
+
+            Log.d("MainViewModel", "Transaction added: $categoryName, $amount, $type")
         }
     }
 
+    // Обновляем сумму категории
+    private suspend fun updateCategoryAmount(categoryName: String, amount: Float) {
+        val category = _categories.value.find { it.name == categoryName }
+        category?.let {
+            val updatedCategory = it.copy(
+                amount = it.amount + amount,
+                date = System.currentTimeMillis()
+            )
+            categoryDao.update(updatedCategory)
+        }
+    }
+
+    // Обновляем категорию (для обратной совместимости)
     fun updateCategory(category: CategoryEntity) {
         viewModelScope.launch {
             categoryDao.update(category)
@@ -111,7 +187,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteCategoryById(categoryId: Int) {
         viewModelScope.launch {
-            categoryDao.deleteById(categoryId)
+            // Получаем категорию для удаления транзакций
+            val category = _categories.value.find { it.id == categoryId }
+            category?.let {
+                // Удаляем все транзакции по этой категории
+                transactionDao.deleteByCategory(it.name)
+                // Удаляем саму категорию
+                categoryDao.deleteById(categoryId)
+            }
         }
     }
 }

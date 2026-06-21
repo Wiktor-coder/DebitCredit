@@ -2,7 +2,9 @@ package ru.github.debitcredit.ui.settings
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,7 +23,8 @@ import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
 import ru.github.debitcredit.utils.CurrencyService
-import java.util.Locale
+import ru.github.debitcredit.utils.TimeZoneHelper
+import java.util.*
 
 class SettingsFragment : Fragment() {
 
@@ -32,6 +35,7 @@ class SettingsFragment : Fragment() {
     private lateinit var applyButton: MaterialButton
     private lateinit var backButton: ImageButton
     private lateinit var currencyRateTextView: TextView
+    private lateinit var timezoneSpinner: Spinner
 
     private var exchangeRates: Map<String, Double>? = null
 
@@ -40,6 +44,7 @@ class SettingsFragment : Fragment() {
         const val KEY_CURRENCY = "currency"
         const val KEY_THEME = "theme"
         const val KEY_LANGUAGE = "language"
+        const val DEFAULT_LANGUAGE = "ru" // ✅ Русский по умолчанию
     }
 
     override fun onCreateView(
@@ -61,10 +66,12 @@ class SettingsFragment : Fragment() {
         applyButton = view.findViewById(R.id.applyButton)
         backButton = view.findViewById(R.id.backButton)
         currencyRateTextView = view.findViewById(R.id.currencyRateTextView)
+        timezoneSpinner = view.findViewById(R.id.timezoneSpinner)
 
         setupBackButton()
         setupCurrencySpinner()
         setupLanguageSpinner()
+        setupTimezoneSpinner()
         loadSavedSettings()
         loadExchangeRates()
 
@@ -72,6 +79,21 @@ class SettingsFragment : Fragment() {
             saveSettings()
             applySettings()
         }
+    }
+
+    private fun setupTimezoneSpinner() {
+        val timezones = listOf(
+            "UTC-12", "UTC-11", "UTC-10", "UTC-9", "UTC-8", "UTC-7", "UTC-6", "UTC-5",
+            "UTC-4", "UTC-3", "UTC-2", "UTC-1", "UTC+0", "UTC+1", "UTC+2", "UTC+3",
+            "UTC+4", "UTC+5", "UTC+6", "UTC+7", "UTC+8", "UTC+9", "UTC+10", "UTC+11", "UTC+12"
+        )
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, timezones)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        timezoneSpinner.adapter = adapter
+
+        val currentOffset = TimeZoneHelper.getTimeZoneOffset(requireContext())
+        val defaultIndex = timezones.indexOf("UTC+$currentOffset")
+        timezoneSpinner.setSelection(if (defaultIndex >= 0) defaultIndex else 12)
     }
 
     private fun setupBackButton() {
@@ -112,9 +134,9 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    // ✅ Упрощаем - только русский и английский
     private fun setupLanguageSpinner() {
         val languages = listOf(
-            getString(R.string.system_language),
             getString(R.string.russian),
             getString(R.string.english)
         )
@@ -131,19 +153,20 @@ class SettingsFragment : Fragment() {
         val isDarkTheme = sharedPreferences.getBoolean(KEY_THEME, false)
         themeSwitch.isChecked = isDarkTheme
 
-        val savedLanguage = sharedPreferences.getString(KEY_LANGUAGE, "system") ?: "system"
-        val languages = listOf("system", "ru", "en")
-        languageSpinner.setSelection(languages.indexOf(savedLanguage))
+        // ✅ Загружаем сохраненный язык, по умолчанию русский
+        val savedLanguage = sharedPreferences.getString(KEY_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
+        val languages = listOf("ru", "en")
+        languageSpinner.setSelection(languages.indexOf(savedLanguage).coerceAtLeast(0))
     }
 
     private fun saveSettings() {
         val selectedCurrency = currencySpinner.selectedItem.toString()
         val isDarkTheme = themeSwitch.isChecked
+        // ✅ Сохраняем язык: 0 - русский, 1 - английский
         val selectedLanguage = when (languageSpinner.selectedItemPosition) {
-            0 -> "system"
-            1 -> "ru"
-            2 -> "en"
-            else -> "system"
+            0 -> "ru"
+            1 -> "en"
+            else -> "ru"
         }
 
         sharedPreferences.edit {
@@ -151,6 +174,10 @@ class SettingsFragment : Fragment() {
             putBoolean(KEY_THEME, isDarkTheme)
             putString(KEY_LANGUAGE, selectedLanguage)
         }
+
+        val selectedTimezone = timezoneSpinner.selectedItem.toString()
+        val offset = selectedTimezone.replace("UTC", "").toIntOrNull() ?: 0
+        TimeZoneHelper.saveTimeZoneOffset(requireContext(), offset)
     }
 
     private fun applySettings() {
@@ -163,25 +190,23 @@ class SettingsFragment : Fragment() {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        val languageCode = when (languageSpinner.selectedItemPosition) {
-            1 -> "ru"
-            2 -> "en"
-            else -> null
+        // ✅ Получаем выбранный язык: 0 - русский, 1 - английский
+        val selectedLanguage = when (languageSpinner.selectedItemPosition) {
+            0 -> "ru"
+            1 -> "en"
+            else -> "ru"
         }
 
-        if (languageCode != null) {
-            setAppLocale(languageCode)
-        }
+        val locale = Locale(selectedLanguage)
+        Log.d("SettingsFragment", "Selected language: $selectedLanguage, Locale: ${locale.language}")
 
-        Toast.makeText(requireContext(), getString(R.string.settings_applied), Toast.LENGTH_LONG).show()
-        requireActivity().recreate()
-    }
-
-    private fun setAppLocale(languageCode: String) {
-        val locale = Locale(languageCode)
+        // ✅ Устанавливаем локаль
         Locale.setDefault(locale)
         val config = resources.configuration
         config.setLocale(locale)
         resources.updateConfiguration(config, resources.displayMetrics)
+
+        Toast.makeText(requireContext(), getString(R.string.settings_applied), Toast.LENGTH_LONG).show()
+        requireActivity().recreate()
     }
 }

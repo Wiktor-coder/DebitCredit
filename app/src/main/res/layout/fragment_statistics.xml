@@ -6,32 +6,32 @@
     android:background="?attr/colorSurface"
     android:isScrollContainer="true">
 
-    <!-- LineChart для динамики расходов -->
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/lineChart"
+    <!-- CustomBarChart -->
+    <ru.github.debitcredit.customview.CustomBarChart
+        android:id="@+id/chart"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="32dp"
+        android:layout_height="280dp"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="16dp"
         android:background="#D0FFFFFF"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- StatsView для диаграммы соотношения -->
+    <!-- StatsView -->
     <ru.github.debitcredit.customview.StatsView
         android:id="@+id/statsView"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lineChart" />
+        app:layout_constraintTop_toBottomOf="@+id/chart" />
 
     <!-- Круглые кнопки периодов -->
     <LinearLayout
         android:id="@+id/periodButtonsContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingLeft="8dp"
@@ -67,7 +67,7 @@
         android:layout_height="0dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@+id/periodButtonsContainer"
         app:layout_constraintBottom_toTopOf="@+id/backButton"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />

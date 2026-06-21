@@ -8,26 +8,28 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import ru.github.debitcredit.data.dao.CategoryDao
 import ru.github.debitcredit.data.dao.IncomeDao
+import ru.github.debitcredit.data.dao.TransactionDao
 import ru.github.debitcredit.data.model.CategoryEntity
 import ru.github.debitcredit.data.model.IncomeEntity
+import ru.github.debitcredit.data.model.TransactionEntity
 
 @Database(
-    entities = [CategoryEntity::class, IncomeEntity::class],
-    version = 4,
+    entities = [CategoryEntity::class, IncomeEntity::class, TransactionEntity::class],
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun incomeDao(): IncomeDao
+    abstract fun transactionDao(): TransactionDao
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // Миграция с версии 1 до версии 2 (добавление таблицы incomes)
         private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("""
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
                     CREATE TABLE IF NOT EXISTS `incomes` (
                         `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                         `amount` REAL NOT NULL,
@@ -38,20 +40,51 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        // Миграция с версии 2 до версии 3
         private val MIGRATION_2_3 = object : Migration(2, 3) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+            override fun migrate(db: SupportSQLiteDatabase) {
                 // Пока ничего
             }
         }
 
-        // Миграция с версии 3 до версии 4 (добавление колонки iconRes)
         private val MIGRATION_3_4 = object : Migration(3, 4) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                // Добавляем колонку iconRes с значением по умолчанию
-                database.execSQL("""
-            ALTER TABLE categories ADD COLUMN iconRes INTEGER NOT NULL DEFAULT ${android.R.drawable.ic_menu_edit}
-        """)
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    ALTER TABLE categories ADD COLUMN iconRes INTEGER NOT NULL DEFAULT ${android.R.drawable.ic_menu_edit}
+                """)
+            }
+        }
+
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    ALTER TABLE categories ADD COLUMN date INTEGER NOT NULL DEFAULT 0
+                """)
+            }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `transactions` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `categoryName` TEXT NOT NULL,
+                        `amount` REAL NOT NULL,
+                        `date` INTEGER NOT NULL,
+                        `type` TEXT NOT NULL
+                    )
+                """)
+
+                // Переносим данные из категорий в транзакции
+                db.execSQL("""
+                    INSERT INTO transactions (categoryName, amount, date, type)
+                    SELECT name, amount, date, 'expense' FROM categories WHERE amount > 0
+                """)
+
+                // Переносим доходы
+                db.execSQL("""
+                    INSERT INTO transactions (categoryName, amount, date, type)
+                    SELECT 'income', amount, date, 'income' FROM incomes
+                """)
             }
         }
 
@@ -62,8 +95,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "debitcredit.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
-                    .fallbackToDestructiveMigration(true) // для разработки
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                    .fallbackToDestructiveMigration(true)
                     .build()
                 INSTANCE = instance
                 instance
