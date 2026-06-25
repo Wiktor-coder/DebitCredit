@@ -2,6 +2,7 @@ package ru.github.debitcredit.ui.main
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -16,7 +17,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -104,13 +104,16 @@ class MainFragment : Fragment() {
     private fun observeCategories() {
         lifecycleScope.launch {
             viewModel.categories.collect { categoryList ->
-                categories.clear()
-                categories.addAll(categoryList)
+                // ✅ СОЗДАЕМ НОВЫЙ СПИСОК, а не используем тот же объект
+                categories = categoryList.toMutableList()
 
+                // ✅ Обновляем адаптер
                 categoryAdapter.updateCategories(categories)
                 updateStatsView()
 
                 isDataLoaded = true
+
+                Log.d("MainFragment", "Categories updated: ${categories.size}")
             }
         }
     }
@@ -143,9 +146,8 @@ class MainFragment : Fragment() {
         addCategoryButton = view.findViewById(R.id.addCategoryButton)
         incomeButton = view.findViewById(R.id.incomeButton)
 
-        // Вертикальный список
         categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        categoryRecyclerView.setHasFixedSize(false)  // ← ДОБАВЛЯЕМ
+        categoryRecyclerView.setHasFixedSize(false)
 
         categoryAdapter = CategoryAdapter(
             categories,
@@ -178,19 +180,31 @@ class MainFragment : Fragment() {
         categoryRecyclerView.adapter = categoryAdapter
     }
 
+    // В MainFragment.kt, в showDeleteConfirmationDialog:
     private fun showDeleteConfirmationDialog(category: CategoryEntity) {
+        val displayName = when (category.name) {
+            "products" -> getString(R.string.products)
+            "utilities" -> getString(R.string.utilities)
+            "transport" -> getString(R.string.transport)
+            "health" -> getString(R.string.health)
+            "clothing" -> getString(R.string.clothing)
+            "entertainment" -> getString(R.string.entertainment)
+            "other" -> getString(R.string.other)
+            else -> category.name
+        }
+
         AlertDialog.Builder(requireContext())
-            .setTitle("Удаление категории")
-            .setMessage("Вы действительно хотите удалить категорию \"${category.name}\"? Все данные будут потеряны.")
-            .setPositiveButton("Удалить") { _, _ ->
+            .setTitle(R.string.delete_category)
+            .setMessage(String.format(getString(R.string.delete_category_confirmation), displayName))
+            .setPositiveButton(R.string.delete) { _, _ ->
                 viewModel.deleteCategoryById(category.id)
                 Toast.makeText(
                     requireContext(),
-                    "Категория \"${category.name}\" удалена",
+                    "$displayName ${getString(R.string.category_deleted)}",
                     Toast.LENGTH_SHORT
                 ).show()
             }
-            .setNegativeButton("Отмена", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 

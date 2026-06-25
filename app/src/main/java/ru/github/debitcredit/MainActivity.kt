@@ -28,7 +28,9 @@ class MainActivity : AppCompatActivity() {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        updateLocale(sharedPref)
+        // Язык - по умолчанию русский
+        val languageCode = sharedPref.getString("language", "ru") ?: "ru"
+        setAppLocale(languageCode)
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -55,14 +57,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateLocale(sharedPref: SharedPreferences) {
-        val savedLanguage = sharedPref.getString("settings_language", "system") ?: "system"
-        val languageCode = when (savedLanguage) {
-            "ru" -> "ru"
-            "en" -> "en"
-            else -> null
-        }
-
-        if (languageCode != null && languageCode != Locale.getDefault().language) {
+        val languageCode = sharedPref.getString("language", "ru") ?: "ru"
+        if (languageCode != Locale.getDefault().language) {
             setAppLocale(languageCode)
         }
     }

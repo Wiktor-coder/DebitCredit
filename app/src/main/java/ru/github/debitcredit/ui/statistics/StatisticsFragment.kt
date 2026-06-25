@@ -16,17 +16,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
+import ru.github.debitcredit.customview.CustomBarChart
 import ru.github.debitcredit.customview.StatsView
+import ru.github.debitcredit.data.model.TransactionEntity
+import ru.github.debitcredit.utils.TimeZoneHelper
 import ru.github.debitcredit.viewmodel.MainViewModel
-import kotlin.math.min
+import java.util.*
 
 class StatisticsFragment : Fragment() {
 
@@ -34,13 +31,15 @@ class StatisticsFragment : Fragment() {
         ownerProducer = { requireActivity() }
     )
 
+    private lateinit var chart: CustomBarChart
     private lateinit var statsView: StatsView
-    private lateinit var lineChart: LineChart
     private lateinit var itemsRecyclerView: RecyclerView
     private lateinit var itemsAdapter: StatisticsItemsAdapter
     private var currentPeriod = "month"
     private var selectedButtonId = R.id.monthButton
     private var isDataLoaded = false
+
+    private var transactions: List<TransactionEntity> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,8 +52,8 @@ class StatisticsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        chart = view.findViewById(R.id.chart)
         statsView = view.findViewById(R.id.statsView)
-        lineChart = view.findViewById(R.id.lineChart)
         itemsRecyclerView = view.findViewById(R.id.itemsRecyclerView)
 
         itemsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -64,46 +63,8 @@ class StatisticsFragment : Fragment() {
         setupPeriodButtons(view)
         setupBackButton(view)
         setupStatsViewClick()
-        setupLineChart()
 
         observeData()
-    }
-
-    private fun setupLineChart() {
-        lineChart.apply {
-            description.isEnabled = false
-            setTouchEnabled(true)
-            isDragEnabled = true
-            setScaleEnabled(true)
-            setPinchZoom(true)
-            legend.isEnabled = false
-
-            val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-
-            val textColor = if (isNightMode) "#EEEEEE" else "#333333"
-            val gridColor = if (isNightMode) "#555555" else "#CCCCCC"
-
-            setBackgroundColor(Color.parseColor("#D0FFFFFF"))
-
-            xAxis.position = XAxis.XAxisPosition.BOTTOM
-            xAxis.setDrawGridLines(false)
-            xAxis.granularity = 1f
-            xAxis.textColor = Color.parseColor(textColor)
-            xAxis.textSize = 10f
-
-            axisLeft.setDrawGridLines(true)
-            axisLeft.setDrawZeroLine(true)
-            axisLeft.axisMinimum = -100f
-            axisLeft.axisMaximum = 100f
-            axisLeft.textColor = Color.parseColor(textColor)
-            axisLeft.textSize = 10f
-            axisLeft.gridColor = Color.parseColor(gridColor)
-
-            axisRight.isEnabled = false
-
-            setNoDataText(getString(R.string.no_data))
-            setNoDataTextColor(Color.parseColor(textColor))
-        }
     }
 
     private fun setupPeriodButtons(view: View) {
@@ -154,7 +115,8 @@ class StatisticsFragment : Fragment() {
 
     private fun observeData() {
         lifecycleScope.launch {
-            viewModel.categories.collect { categories ->
+            viewModel.transactions.collect { list ->
+                transactions = list
                 isDataLoaded = true
                 updateAllData()
             }
@@ -169,7 +131,7 @@ class StatisticsFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            viewModel.expenses.collect {
+            viewModel.totalExpenses.collect {
                 if (isDataLoaded) {
                     updateAllData()
                 }
@@ -187,17 +149,17 @@ class StatisticsFragment : Fragment() {
 
     private fun updateAllData() {
         val income = viewModel.totalIncome.value
-        val expenses = viewModel.expenses.value
+        val expenses = viewModel.totalExpenses.value
         val balance = viewModel.balance.value
 
         updateStatsView(income, expenses)
-        updateLineChart()
+        updateChart()
         updateInfoItems(income, expenses, balance)
     }
 
     private fun updateStatsView(income: Float, expenses: Float) {
         val percentage = if (income > 0) {
-            min((expenses / income) * 100, 100f)
+            kotlin.math.min((expenses / income) * 100, 100f)
         } else {
             0f
         }
@@ -221,17 +183,9 @@ class StatisticsFragment : Fragment() {
 
     private fun updateInfoItems(income: Float, expenses: Float, balance: Float) {
         val percentage = if (income > 0) {
-            min((expenses / income) * 100, 100f)
+            kotlin.math.min((expenses / income) * 100, 100f)
         } else {
             0f
-        }
-
-        val formatWithSign = { value: Float ->
-            if (value < 0) {
-                String.format("%.2f ₽", value)
-            } else {
-                String.format("%.2f ₽", value)
-            }
         }
 
         val infoItems = listOf(
@@ -249,64 +203,225 @@ class StatisticsFragment : Fragment() {
             ),
             InfoItem(
                 getString(R.string.remaining),
-                formatWithSign(balance)
+                String.format("%.2f ₽", balance)
             )
         )
 
         itemsAdapter.updateData(infoItems)
     }
 
-    private fun updateLineChart() {
-        val expenseValues = when (currentPeriod) {
-            "day" -> listOf(5f, 12f, 18f, 25f, 30f, 28f, 35f)
-            "week" -> listOf(15f, 22f, 18f, 25f, 30f, 28f, 35f)
-            "month" -> listOf(10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f, 65f, 70f, 75f, 80f, 82f, 85f, 88f, 90f, 92f, 94f, 95f, 96f, 97f, 98f, 99f, 99.5f, 100f, 100f, 100f)
-            "year" -> listOf(10f, 12f, 15f, 18f, 22f, 28f, 35f, 45f, 55f, 65f, 75f, 85f)
-            else -> listOf(10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f, 65f, 70f, 75f, 80f, 82f, 85f, 88f, 90f, 92f, 94f, 95f, 96f, 97f, 98f, 99f, 99.5f, 100f, 100f, 100f)
+    private fun updateChart() {
+        val chartData = getChartData()
+
+        Log.d("StatisticsFragment", "Метки графика: ${chartData.map { "${it.label} (расход: ${it.expense}, доход: ${it.income})" }}")
+
+        if (chartData.isEmpty()) {
+            chart.visibility = View.GONE
+            return
+        }
+        chart.visibility = View.VISIBLE
+
+        chart.data = chartData.map {
+            CustomBarChart.BarData(it.label, it.expense, it.income)
+        }
+    }
+
+    private fun getChartData(): List<ChartDataItem> {
+        val result = mutableListOf<ChartDataItem>()
+
+        val currentHour = TimeZoneHelper.getCurrentHourWithOffset(requireContext())
+        val currentDay = TimeZoneHelper.getCurrentDayWithOffset(requireContext())
+        val currentMonth = TimeZoneHelper.getCurrentMonthWithOffset(requireContext())
+        val currentYear = TimeZoneHelper.getCurrentYearWithOffset(requireContext())
+        val currentDayOfWeek = TimeZoneHelper.getCurrentDayOfWeekWithOffset(requireContext())
+
+        Log.d("StatisticsFragment", "=== ВРЕМЯ С УЧЕТОМ ЧАСОВОГО ПОЯСА ===")
+        Log.d("StatisticsFragment", "Час: $currentHour, День: $currentDay, Месяц: ${currentMonth + 1}, Год: $currentYear")
+
+        when (currentPeriod) {
+            "day" -> {
+                val startOfDay = Calendar.getInstance().apply {
+                    set(currentYear, currentMonth, currentDay, 0, 0, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+
+                val endOfDay = startOfDay + 24 * 60 * 60 * 1000
+
+                val hourMap = mutableMapOf<Int, Pair<Float, Float>>()
+                for (hour in 0..currentHour) {
+                    hourMap[hour] = 0f to 0f
+                }
+
+                for (transaction in transactions) {
+                    // ✅ Используем метод для корректировки времени транзакции
+                    val adjustedDate = TimeZoneHelper.adjustTransactionTime(transaction.date, requireContext())
+
+                    if (adjustedDate in startOfDay..endOfDay) {
+                        val transCal = Calendar.getInstance().apply { timeInMillis = adjustedDate }
+                        val hour = transCal.get(Calendar.HOUR_OF_DAY)
+
+                        if (hour <= currentHour) {
+                            val current = hourMap[hour] ?: (0f to 0f)
+                            if (transaction.type == "expense") {
+                                hourMap[hour] = (current.first + transaction.amount) to current.second
+                            } else {
+                                hourMap[hour] = current.first to (current.second + transaction.amount)
+                            }
+                            Log.d("StatisticsFragment", "Транзакция в $hour:00 (скорректировано) - ${transaction.amount} ${transaction.type}")
+                        }
+                    }
+                }
+
+                for (hour in 0..currentHour) {
+                    val (expense, income) = hourMap[hour] ?: (0f to 0f)
+                    result.add(ChartDataItem(hour.toString(), expense, income))
+                }
+            }
+
+            "week" -> {
+                val startOfWeek = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, currentYear)
+                    set(Calendar.MONTH, currentMonth)
+                    set(Calendar.DAY_OF_MONTH, currentDay)
+                    set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+
+                val endOfWeek = startOfWeek + 7 * 24 * 60 * 60 * 1000
+                val weekTransactions = transactions.filter { it.date in startOfWeek..endOfWeek }
+
+                val dayNames = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+                val dayMap = mutableMapOf<String, Pair<Float, Float>>()
+
+                val daysPassed = when (currentDayOfWeek) {
+                    Calendar.MONDAY -> 0
+                    Calendar.TUESDAY -> 1
+                    Calendar.WEDNESDAY -> 2
+                    Calendar.THURSDAY -> 3
+                    Calendar.FRIDAY -> 4
+                    Calendar.SATURDAY -> 5
+                    Calendar.SUNDAY -> 6
+                    else -> 0
+                }
+
+                for (i in 0..daysPassed) {
+                    dayMap[dayNames[i]] = 0f to 0f
+                }
+
+                for (transaction in weekTransactions) {
+                    val cal = Calendar.getInstance().apply { timeInMillis = transaction.date }
+                    val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
+                    val dayName = when (dayOfWeek) {
+                        Calendar.MONDAY -> "Пн"
+                        Calendar.TUESDAY -> "Вт"
+                        Calendar.WEDNESDAY -> "Ср"
+                        Calendar.THURSDAY -> "Чт"
+                        Calendar.FRIDAY -> "Пт"
+                        Calendar.SATURDAY -> "Сб"
+                        Calendar.SUNDAY -> "Вс"
+                        else -> ""
+                    }
+
+                    if (dayMap.containsKey(dayName)) {
+                        val current = dayMap[dayName] ?: (0f to 0f)
+                        if (transaction.type == "expense") {
+                            dayMap[dayName] = (current.first + transaction.amount) to current.second
+                        } else {
+                            dayMap[dayName] = current.first to (current.second + transaction.amount)
+                        }
+                    }
+                }
+
+                for (day in 0..daysPassed) {
+                    val (expense, income) = dayMap[dayNames[day]] ?: (0f to 0f)
+                    result.add(ChartDataItem(dayNames[day], expense, income))
+                }
+            }
+
+            "month" -> {
+                val startOfMonth = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, currentYear)
+                    set(Calendar.MONTH, currentMonth)
+                    set(Calendar.DAY_OF_MONTH, 1)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+
+                val endOfMonth = startOfMonth + 31 * 24 * 60 * 60 * 1000L
+                val monthTransactions = transactions.filter { it.date in startOfMonth..endOfMonth }
+
+                val dayMap = mutableMapOf<Int, Pair<Float, Float>>()
+                for (day in 1..currentDay) {
+                    dayMap[day] = 0f to 0f
+                }
+
+                for (transaction in monthTransactions) {
+                    val cal = Calendar.getInstance().apply { timeInMillis = transaction.date }
+                    val day = cal.get(Calendar.DAY_OF_MONTH)
+                    if (day <= currentDay) {
+                        val current = dayMap[day] ?: (0f to 0f)
+                        if (transaction.type == "expense") {
+                            dayMap[day] = (current.first + transaction.amount) to current.second
+                        } else {
+                            dayMap[day] = current.first to (current.second + transaction.amount)
+                        }
+                    }
+                }
+
+                for (day in 1..currentDay) {
+                    val (expense, income) = dayMap[day] ?: (0f to 0f)
+                    result.add(ChartDataItem(day.toString(), expense, income))
+                }
+            }
+
+            "year" -> {
+                val startOfYear = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, currentYear)
+                    set(Calendar.MONTH, 0)
+                    set(Calendar.DAY_OF_MONTH, 1)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+
+                val endOfYear = startOfYear + 366 * 24 * 60 * 60 * 1000L
+                val yearTransactions = transactions.filter { it.date in startOfYear..endOfYear }
+
+                val monthNames = listOf("Янв", "Фев", "Мар", "Апр", "Май", "Июн",
+                    "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек")
+                val monthMap = mutableMapOf<Int, Pair<Float, Float>>()
+
+                for (month in 0..currentMonth) {
+                    monthMap[month] = 0f to 0f
+                }
+
+                for (transaction in yearTransactions) {
+                    val cal = Calendar.getInstance().apply { timeInMillis = transaction.date }
+                    val month = cal.get(Calendar.MONTH)
+                    if (month <= currentMonth) {
+                        val current = monthMap[month] ?: (0f to 0f)
+                        if (transaction.type == "expense") {
+                            monthMap[month] = (current.first + transaction.amount) to current.second
+                        } else {
+                            monthMap[month] = current.first to (current.second + transaction.amount)
+                        }
+                    }
+                }
+
+                for (month in 0..currentMonth) {
+                    val (expense, income) = monthMap[month] ?: (0f to 0f)
+                    result.add(ChartDataItem(monthNames[month], expense, income))
+                }
+            }
         }
 
-        val labels = when (currentPeriod) {
-            "day" -> listOf("00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "24:00")
-            "week" -> listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
-            "month" -> (1..31).map { "$it" }
-            "year" -> listOf("Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек")
-            else -> (1..31).map { "$it" }
-        }
-
-        val entries = expenseValues.mapIndexed { index, value ->
-            Entry(index.toFloat(), value)
-        }
-
-        val dataSet = LineDataSet(entries, getString(R.string.expenses)).apply {
-            color = Color.parseColor("#FF6B6B")
-            setCircleColor(Color.parseColor("#FF6B6B"))
-            lineWidth = 2f
-            circleRadius = 3f
-            setDrawCircleHole(false)
-            valueTextColor = Color.parseColor("#333333")
-            valueTextSize = 9f
-            setDrawValues(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            setDrawFilled(true)
-            fillColor = Color.parseColor("#FF6B6B")
-            fillAlpha = 50
-        }
-
-        lineChart.data = LineData(dataSet)
-
-        val xAxis = lineChart.xAxis
-
-        val labelCount = when (currentPeriod) {
-            "month" -> min(labels.size / 3, 10)
-            else -> min(labels.size, 8)
-        }
-
-        xAxis.valueFormatter = IndexAxisValueFormatter(labels)
-        xAxis.setLabelCount(labelCount, true)
-        xAxis.granularity = 1f
-
-        lineChart.setVisibleXRangeMaximum(if (currentPeriod == "month") 10f else 7f)
-        lineChart.invalidate()
+        return result
     }
 
     override fun onResume() {
@@ -321,7 +436,12 @@ class StatisticsFragment : Fragment() {
     }
 }
 
-// Дата класс для информации
+data class ChartDataItem(
+    val label: String,
+    val expense: Float,
+    val income: Float
+)
+
 data class InfoItem(
     val title: String,
     val value: String
@@ -347,7 +467,6 @@ class StatisticsItemsAdapter() : RecyclerView.Adapter<StatisticsItemsAdapter.Vie
         holder.nameText.text = item.title
         holder.amountText.text = item.value
 
-        // Получаем цвет текста в зависимости от темы
         val isNightMode = (holder.itemView.context.resources.configuration.uiMode and
                 android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
                 android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -358,7 +477,6 @@ class StatisticsItemsAdapter() : RecyclerView.Adapter<StatisticsItemsAdapter.Vie
             ContextCompat.getColor(holder.itemView.context, android.R.color.black)
         }
 
-        // Если это строка с остатком и значение отрицательное - красим в красный
         if (item.title == holder.itemView.context.getString(R.string.remaining) &&
             item.value.startsWith("-")) {
             holder.amountText.setTextColor(Color.parseColor("#FF6B6B"))

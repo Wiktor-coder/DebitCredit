@@ -11,4 +11,5 @@ data class CategoryEntity(
     val amount: Float = 0f,
     val color: Int,
     val iconRes: Int = android.R.drawable.ic_menu_edit,
+    val date: Long = System.currentTimeMillis(), // Дата транзакции
 )

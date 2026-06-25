@@ -21,7 +21,7 @@
     <string name="new_amount">Новая сумма</string>
     <string name="income_added">Доход добавлен</string>
     <string name="category_deleted">Категория удалена</string>
-    <string name="no_categories">Нет категорий для удаления</string>
+    <string name="no_categories">Нет категорий для добавления</string>
     <string name="category_added">Добавлена</string>
     <string name="settings_applied">Настройки применены. Приложение будет перезапущено.</string>
     <string name="delete_category">Удалить категорию</string>
@@ -38,20 +38,21 @@
     <string name="add_income">Добавить доход</string>
     <string name="add_amount">Сумма для добавления</string>
     <string name="category">Категория</string>
-    <string name="category_selected">Выбрана категория</string>
+    <string name="category_selected">уже добавлена</string>
     <string name="rub">₽</string>
+    <string name="add_category_question">Добавить категорию</string>
 
     <!-- Настройки -->
     <string name="currency">Валюта</string>
     <string name="theme">Тема</string>
     <string name="dark_theme">Тёмная тема</string>
     <string name="language">Язык</string>
-    <string name="system_language">Системный</string>
     <string name="russian">Русский</string>
     <string name="english">English</string>
     <string name="select_currency">Выберите валюту</string>
     <string name="base_currency">Базовая валюта: Российский рубль (RUB)</string>
     <string name="rate_not_available">Курс не доступен</string>
+    <string name="timezone">Часовой пояс</string>
 
     <!-- Статистика -->
     <string name="day">День</string>

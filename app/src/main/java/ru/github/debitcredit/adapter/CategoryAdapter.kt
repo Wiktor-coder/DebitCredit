@@ -155,6 +155,7 @@ class CategoryAdapter(
         return categories.size
     }
 
+    // CategoryAdapter.kt - добавьте проверку
     fun updateCategories(newCategories: List<CategoryEntity>) {
         categories = newCategories
         Log.d("CategoryAdapter", "updateCategories - size: ${categories.size}")
