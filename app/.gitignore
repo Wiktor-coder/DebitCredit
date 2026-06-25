@@ -7,6 +7,9 @@ gradlew
 gradlew.bat
 !gradle/wrapper/gradle-wrapper.jar
 local.properties
+*.iws
+*.ipr
+gradle.properties
 
 # Built application
 *.apk

@@ -8,11 +8,6 @@ plugins {
 
 android {
     namespace = "ru.github.debitcredit"
-//    compileSdk {
-//        version = release(36) {
-//            minorApiLevel = 1
-//        }
-//    }
     compileSdk = 36
 
     defaultConfig {
@@ -68,9 +63,6 @@ dependencies {
 
     // CardView для карточек категорий
     implementation(libs.androidx.cardview)
-
-    // MPAndroidChart для графиков
-//    implementation(libs.mping.chart)
 
     // ViewModel и LiveData
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
