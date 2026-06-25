@@ -253,7 +253,6 @@ class StatisticsFragment : Fragment() {
                 }
 
                 for (transaction in transactions) {
-                    // ✅ Используем метод для корректировки времени транзакции
                     val adjustedDate = TimeZoneHelper.adjustTransactionTime(transaction.date, requireContext())
 
                     if (adjustedDate in startOfDay..endOfDay) {

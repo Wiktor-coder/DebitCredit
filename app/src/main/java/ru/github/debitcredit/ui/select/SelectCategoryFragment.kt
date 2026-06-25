@@ -40,8 +40,8 @@ class SelectCategoryFragment : Fragment() {
 
     private val predefinedCategories = listOf(
         PredefinedCategory("products", R.string.products, "#FF5252"),
-        PredefinedCategory("utilities", R.string.utilities, "#FF4081"),
-        PredefinedCategory("transport", R.string.transport, "#FFB74D"),
+        PredefinedCategory("utilities", R.string.utilities, "#FFB74D"),
+        PredefinedCategory("transport", R.string.transport, "#FF4081"),
         PredefinedCategory("health", R.string.health, "#4CAF50"),
         PredefinedCategory("clothing", R.string.clothing, "#9C27B0"),
         PredefinedCategory("entertainment", R.string.entertainment, "#2196F3"),
@@ -81,7 +81,7 @@ class SelectCategoryFragment : Fragment() {
                 iconRes = getIconResByKey(category.key)
             )
         }
-        // ✅ В адаптере показываем локализованные названия
+        // В адаптере показываем локализованные названия
         val displayAdapter = SelectCategoryAdapter(categoryList, requireContext()) { category ->
             checkAndAddCategory(category)
         }

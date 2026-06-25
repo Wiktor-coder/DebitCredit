@@ -34,13 +34,14 @@
     <string name="clothing">Clothing</string>
     <string name="entertainment">Entertainment</string>
     <string name="other">Other</string>
-    <string name="current_amount">Current amount</string>
+    <string name="current_amount">Current amount: %.2f ₽</string>
     <string name="add_income">Add income</string>
     <string name="add_amount">Amount to add</string>
     <string name="category">Category</string>
     <string name="category_selected">already added</string>
     <string name="rub">₽</string>
     <string name="add_category_question">Add category</string>
+    <string name="amount_format">%.2f ₽</string>
 
     <!-- Settings -->
     <string name="currency">Currency</string>

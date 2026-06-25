@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
+import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -26,6 +27,7 @@ import ru.github.debitcredit.adapter.CategoryAdapter
 import ru.github.debitcredit.customview.StatsView
 import ru.github.debitcredit.data.model.CategoryEntity
 import ru.github.debitcredit.viewmodel.MainViewModel
+import java.util.Locale
 
 class MainFragment : Fragment() {
     private val viewModel: MainViewModel by viewModels()
@@ -70,7 +72,7 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initializeViews(view)
-        setupClickListeners(view)
+        setupClickListeners()
         setupStatsViewClick()
 
         observeCategories()
@@ -104,10 +106,10 @@ class MainFragment : Fragment() {
     private fun observeCategories() {
         lifecycleScope.launch {
             viewModel.categories.collect { categoryList ->
-                // ✅ СОЗДАЕМ НОВЫЙ СПИСОК, а не используем тот же объект
+                // СОЗДАЕМ НОВЫЙ СПИСОК, а не используем тот же объект
                 categories = categoryList.toMutableList()
 
-                // ✅ Обновляем адаптер
+                // Обновляем адаптер
                 categoryAdapter.updateCategories(categories)
                 updateStatsView()
 
@@ -123,9 +125,9 @@ class MainFragment : Fragment() {
             viewModel.balance.collect { balance ->
                 if (isAdded && view != null) {
                     val balanceText = if (balance >= 0) {
-                        "${getString(R.string.balance)}: +${String.format("%.2f", balance)} ₽"
+                        "${getString(R.string.balance)}: +${"%.2f".format(Locale.US, balance)} ₽" // +${String.format("%.2f", balance)} ₽"
                     } else {
-                        "${getString(R.string.balance)}: ${String.format("%.2f", balance)} ₽"
+                        "${getString(R.string.balance)}: +${"%.2f".format(Locale.US, balance)} ₽" // ${String.format("%.2f", balance)} ₽"
                     }
                     view?.findViewById<TextView>(R.id.balanceTextView)?.text = balanceText
                 }
@@ -230,7 +232,7 @@ class MainFragment : Fragment() {
                 StatsView.CategoryData(
                     name = getString(R.string.no_data),
                     amount = 1f,
-                    color = Color.parseColor("#78909C")
+                    color = "#78909C".toColorInt()
                 )
             )
         }
@@ -239,7 +241,7 @@ class MainFragment : Fragment() {
         statsView.data = statsData
     }
 
-    private fun setupClickListeners(view: View) {
+    private fun setupClickListeners() {
         addCategoryButton.setOnClickListener {
             findNavController().navigate(R.id.selectCategoryFragment)
         }
@@ -248,7 +250,7 @@ class MainFragment : Fragment() {
             val bundle = Bundle().apply {
                 putBoolean("is_income_mode", true)
                 putString("category_name", "income")
-                putInt("category_color", Color.parseColor("#4ECDC4"))
+                putInt("category_color", "#4ECDC4".toColorInt())
                 putFloat("category_amount", 0f)
                 putInt("category_icon", R.drawable.ic_ruble)
                 putInt("category_id", 0)
