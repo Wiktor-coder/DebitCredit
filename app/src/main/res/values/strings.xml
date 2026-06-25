@@ -34,13 +34,14 @@
     <string name="clothing">Одежда</string>
     <string name="entertainment">Развлечения</string>
     <string name="other">Иное</string>
-    <string name="current_amount">Текущая сумма</string>
+    <string name="current_amount">Текущая сумма: %.2f ₽</string>
     <string name="add_income">Добавить доход</string>
     <string name="add_amount">Сумма для добавления</string>
     <string name="category">Категория</string>
     <string name="category_selected">уже добавлена</string>
     <string name="rub">₽</string>
     <string name="add_category_question">Добавить категорию</string>
+    <string name="amount_format">%.2f ₽</string>
 
     <!-- Настройки -->
     <string name="currency">Валюта</string>

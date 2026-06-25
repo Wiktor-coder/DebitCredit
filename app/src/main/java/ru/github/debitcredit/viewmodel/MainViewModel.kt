@@ -2,6 +2,7 @@ package ru.github.debitcredit.viewmodel
 
 import android.app.Application
 import android.util.Log
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,7 +78,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        // ✅ Запускаем инициализацию после загрузки данных
+        // Запускаем инициализацию после загрузки данных
         viewModelScope.launch {
             // Ждем первой загрузки категорий
             val initialCategories = categoryDao.getAllCategories().first()
@@ -102,13 +103,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun initializeDefaultData() {
-        // ✅ Проверяем, что данные еще не загружены
+        // Проверяем, что данные еще не загружены
         if (isDefaultDataLoaded) {
             Log.d("MainViewModel", "initializeDefaultData - SKIPPED (already loaded)")
             return
         }
 
-        // ✅ Проверяем, есть ли уже категории в БД
+        // Проверяем, есть ли уже категории в БД
         val existingCategories = categoryDao.getAllCategories().first()
         if (existingCategories.isNotEmpty()) {
             Log.d("MainViewModel", "initializeDefaultData - SKIPPED (categories already exist: ${existingCategories.size})")
@@ -120,20 +121,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         Log.d("MainViewModel", "initializeDefaultData - START")
 
         val defaultCategories = listOf(
-            CategoryEntity(0, "products", 0f, android.graphics.Color.parseColor("#FF5252"), R.drawable.ic_trolley),
-            CategoryEntity(0, "utilities", 0f, android.graphics.Color.parseColor("#FF4081"), R.drawable.ic_house),
-            CategoryEntity(0, "transport", 0f, android.graphics.Color.parseColor("#FFB74D"), R.drawable.ic_car),
-            CategoryEntity(0, "health", 0f, android.graphics.Color.parseColor("#4CAF50"), R.drawable.ic_heart),
-            CategoryEntity(0, "clothing", 0f, android.graphics.Color.parseColor("#9C27B0"), R.drawable.ic_clothes),
-            CategoryEntity(0, "entertainment", 0f, android.graphics.Color.parseColor("#2196F3"), R.drawable.ic_amusement),
-            CategoryEntity(0, "other", 0f, android.graphics.Color.parseColor("#78909C"), R.drawable.ic_yin_yang)
+            CategoryEntity(0, "products", 0f, "#FF5252".toColorInt(), R.drawable.ic_trolley),
+            CategoryEntity(0, "utilities", 0f, "#FFB74D".toColorInt(), R.drawable.ic_house),
+            CategoryEntity(0, "transport", 0f, "#FF4081".toColorInt(), R.drawable.ic_car),
+            CategoryEntity(0, "health", 0f, "#4CAF50".toColorInt(), R.drawable.ic_heart),
+            CategoryEntity(0, "clothing", 0f, "#9C27B0".toColorInt(), R.drawable.ic_clothes),
+            CategoryEntity(0, "entertainment", 0f, "#2196F3".toColorInt(), R.drawable.ic_amusement),
+            CategoryEntity(0, "other", 0f, "#78909C".toColorInt(), R.drawable.ic_yin_yang)
         )
 
         defaultCategories.forEach {
             categoryDao.insert(it)
         }
 
-        // ✅ Принудительно обновляем состояние после вставки
+        // Принудительно обновляем состояние после вставки
         val updatedCategories = categoryDao.getAllCategories().first()
         _categories.value = updatedCategories.toList()
 

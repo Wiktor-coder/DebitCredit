@@ -14,12 +14,14 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.graphics.toColorInt
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import ru.github.debitcredit.R
 import ru.github.debitcredit.viewmodel.MainViewModel
+import java.util.Locale
 
 class CategoryEditFragment : Fragment() {
     private val viewModel: MainViewModel by viewModels(
@@ -51,7 +53,7 @@ class CategoryEditFragment : Fragment() {
             isIncomeMode = it.getBoolean("is_income_mode", false)
             categoryKey = it.getString("category_name") ?: "other"
             categoryId = it.getInt("category_id", 0)
-            categoryColor = it.getInt("category_color", Color.parseColor("#FF6B6B"))
+            categoryColor = it.getInt("category_color", "#FF6B6B".toColorInt())
             categoryIconRes = it.getInt("category_icon", android.R.drawable.ic_menu_edit)
             originalAmount = it.getFloat("category_amount", 0f)
             currentAmount = it.getFloat("category_amount", 0f)
@@ -109,7 +111,7 @@ class CategoryEditFragment : Fragment() {
             categoryIcon.setColorFilter(Color.WHITE)
 
             val currentAmountHint = view.findViewById<TextView>(R.id.currentAmountHint)
-            currentAmountHint?.text = "${getString(R.string.current_amount)}: ${String.format("%.2f", originalAmount)} ₽"
+            currentAmountHint?.text = getString(R.string.current_amount, originalAmount)
             currentAmountHint?.visibility = View.VISIBLE
         }
     }
@@ -152,7 +154,12 @@ class CategoryEditFragment : Fragment() {
                 viewModel.addTransaction("income", newAmount, "income")
                 Toast.makeText(
                     requireContext(),
-                    "${getString(R.string.income_added)}: ${String.format("%.2f", newAmount)} ₽",
+                    "${getString(R.string.income_added)}: ${
+                        "%.2f".format(
+                            Locale.getDefault(),
+                            newAmount
+                        )
+                    } ₽",
                     Toast.LENGTH_SHORT
                 ).show()
                 findNavController().popBackStack()
@@ -168,7 +175,12 @@ class CategoryEditFragment : Fragment() {
 
                 Toast.makeText(
                     requireContext(),
-                    "${getString(R.string.amount_added)}: ${String.format("%.2f", newAmount)} ₽\n${getString(R.string.new_amount)}: ${String.format("%.2f", updatedAmount)} ₽",
+                    "${getString(R.string.amount_added)}: ${
+                        "%.2f".format(
+                            Locale.getDefault(), 
+                            newAmount
+                        )
+                    } ₽\n${getString(R.string.new_amount)}: ${"%.2f".format(Locale.getDefault(), updatedAmount)} ₽",
                     Toast.LENGTH_LONG
                 ).show()
                 findNavController().popBackStack()

@@ -44,7 +44,7 @@ class SettingsFragment : Fragment() {
         const val KEY_CURRENCY = "currency"
         const val KEY_THEME = "theme"
         const val KEY_LANGUAGE = "language"
-        const val DEFAULT_LANGUAGE = "ru" // ✅ Русский по умолчанию
+        const val DEFAULT_LANGUAGE = "ru" // Русский по умолчанию
     }
 
     override fun onCreateView(
@@ -134,7 +134,7 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    // ✅ Упрощаем - только русский и английский
+    // только русский и английский
     private fun setupLanguageSpinner() {
         val languages = listOf(
             getString(R.string.russian),
@@ -153,7 +153,7 @@ class SettingsFragment : Fragment() {
         val isDarkTheme = sharedPreferences.getBoolean(KEY_THEME, false)
         themeSwitch.isChecked = isDarkTheme
 
-        // ✅ Загружаем сохраненный язык, по умолчанию русский
+        // Загружаем сохраненный язык, по умолчанию русский
         val savedLanguage = sharedPreferences.getString(KEY_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
         val languages = listOf("ru", "en")
         languageSpinner.setSelection(languages.indexOf(savedLanguage).coerceAtLeast(0))
@@ -162,7 +162,7 @@ class SettingsFragment : Fragment() {
     private fun saveSettings() {
         val selectedCurrency = currencySpinner.selectedItem.toString()
         val isDarkTheme = themeSwitch.isChecked
-        // ✅ Сохраняем язык: 0 - русский, 1 - английский
+        // Сохраняем язык: 0 - русский, 1 - английский
         val selectedLanguage = when (languageSpinner.selectedItemPosition) {
             0 -> "ru"
             1 -> "en"
@@ -190,7 +190,7 @@ class SettingsFragment : Fragment() {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        // ✅ Получаем выбранный язык: 0 - русский, 1 - английский
+        // Получаем выбранный язык: 0 - русский, 1 - английский
         val selectedLanguage = when (languageSpinner.selectedItemPosition) {
             0 -> "ru"
             1 -> "en"
@@ -200,7 +200,7 @@ class SettingsFragment : Fragment() {
         val locale = Locale(selectedLanguage)
         Log.d("SettingsFragment", "Selected language: $selectedLanguage, Locale: ${locale.language}")
 
-        // ✅ Устанавливаем локаль
+        // Устанавливаем локаль
         Locale.setDefault(locale)
         val config = resources.configuration
         config.setLocale(locale)

@@ -40,7 +40,7 @@ class SelectCategoryAdapter(
 
     override fun onBindViewHolder(holder: SelectCategoryViewHolder, position: Int) {
         val category = categories[position]
-        // ✅ Показываем локализованное имя
+        // Показываем локализованное имя
         val displayName = categoryNameMap[category.name]?.let { context.getString(it) } ?: category.name
         holder.nameText.text = displayName
         holder.cardView.setCardBackgroundColor(category.color)

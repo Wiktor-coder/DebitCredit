@@ -69,7 +69,7 @@ class CategoryAdapter(
         // Получаем локализованное имя по ключу
         val displayName = getLocalizedName(category.name)
         holder.nameText.text = displayName
-        holder.amountText.text = String.format("%.2f ₽", category.amount)
+        holder.amountText.text = context.getString(R.string.amount_format, category.amount)
 
         // Создаем круглый фон для иконки
         val drawable = GradientDrawable().apply {
