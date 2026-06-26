@@ -3,6 +3,7 @@ package ru.github.debitcredit.data.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import ru.github.debitcredit.data.model.TransactionEntity
 
@@ -37,4 +38,7 @@ interface TransactionDao {
 
     @Query("DELETE FROM transactions WHERE categoryName = :categoryName")
     suspend fun deleteByCategory(categoryName: String)
+
+    @Query("UPDATE transactions SET date = :newTime WHERE id = :id")
+    suspend fun updateTransactionTimeById(id: Int, newTime: Long)
 }

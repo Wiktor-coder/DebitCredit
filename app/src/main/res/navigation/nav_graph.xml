@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="ru.github.debitcredit.ui.main.MainFragment"
+        android:name="ru.github.debitcredit.presentation.ui.main.MainFragment"
         android:label="DebitCredit" >
         <action
             android:id="@+id/action_mainFragment_to_categoryEditFragment"
@@ -24,7 +24,7 @@
 
     <fragment
         android:id="@+id/categoryEditFragment"
-        android:name="ru.github.debitcredit.ui.edit.CategoryEditFragment"
+        android:name="ru.github.debitcredit.presentation.ui.edit.CategoryEditFragment"
         android:label="Редактирование категории">
         <argument
             android:name="category_name"
@@ -50,17 +50,17 @@
 
     <fragment
         android:id="@+id/statisticsFragment"
-        android:name="ru.github.debitcredit.ui.statistics.StatisticsFragment"
+        android:name="ru.github.debitcredit.presentation.ui.statistics.StatisticsFragment"
         android:label="Статистика" />
 
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="ru.github.debitcredit.ui.settings.SettingsFragment"
+        android:name="ru.github.debitcredit.presentation.ui.settings.SettingsFragment"
         android:label="Настройки" />
 
     <fragment
         android:id="@+id/selectCategoryFragment"
-        android:name="ru.github.debitcredit.ui.select.SelectCategoryFragment"
+        android:name="ru.github.debitcredit.presentation.ui.select.SelectCategoryFragment"
         android:label="Выбор категории" />
 
 </navigation>

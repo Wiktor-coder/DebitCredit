@@ -42,6 +42,7 @@
     <string name="rub">₽</string>
     <string name="add_category_question">Add category</string>
     <string name="amount_format">%.2f ₽</string>
+    <string name="Migrate_transaction_times">Migrate transaction times</string>
 
     <!-- Settings -->
     <string name="currency">Currency</string>

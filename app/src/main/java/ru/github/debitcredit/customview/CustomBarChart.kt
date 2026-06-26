@@ -1,7 +1,10 @@
 package ru.github.debitcredit.customview
 
 import android.content.Context
-import android.graphics.*
+import android.content.res.Configuration
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -81,7 +84,9 @@ class CustomBarChart @JvmOverloads constructor(
 
                 // Вычисляем начальный индекс
                 visibleStartIndex = (scrollOffset / itemWidth).toInt()
-                visibleStartIndex = visibleStartIndex.coerceIn(0, max(0, data.size - maxVisibleItems))
+                visibleStartIndex = visibleStartIndex.coerceIn(0,
+                    max(0, data.size - maxVisibleItems)
+                )
 
                 invalidate()
                 return true
@@ -134,6 +139,19 @@ class CustomBarChart @JvmOverloads constructor(
                 paint
             )
 
+            // Добавляем значение над столбцом расхода
+            if (item.expense > 0) {
+                textPaint.textSize = 20f
+                textPaint.color = "#FF6B6B".toColorInt()
+                textPaint.textAlign = Paint.Align.CENTER
+                canvas.drawText(
+                    String.format("%.0f", item.expense),
+                    x + barWidth / 2,
+                    paddingTop + chartHeight - expenseHeight - 8f,
+                    textPaint
+                )
+            }
+
             // Доход (зеленый)
             val incomeHeight = if (maxValue > 0) (item.income / maxValue) * chartHeight else 0f
             paint.color = "#4ECDC4".toColorInt()
@@ -145,9 +163,23 @@ class CustomBarChart @JvmOverloads constructor(
                 paint
             )
 
+            // Добавляем значение над столбцом дохода
+            if (item.income > 0) {
+                textPaint.textSize = 20f
+                textPaint.color = "#4ECDC4".toColorInt()
+                textPaint.textAlign = Paint.Align.CENTER
+                canvas.drawText(
+                    String.format("%.0f", item.income),
+                    x + barWidth + gap + barWidth / 2,
+                    paddingTop + chartHeight - incomeHeight - 8f,
+                    textPaint
+                )
+            }
+
             // Подпись
             textPaint.textSize = 28f
             textPaint.color = getTextColor()
+            textPaint.textAlign = Paint.Align.CENTER
             val labelX = x + barWidth + gap / 2
             canvas.drawText(item.label, labelX, totalHeight - 10f, textPaint)
         }
@@ -215,8 +247,8 @@ class CustomBarChart @JvmOverloads constructor(
 
     private fun getTextColor(): Int {
         val isNightMode = (resources.configuration.uiMode and
-                android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-                android.content.res.Configuration.UI_MODE_NIGHT_YES
+                Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
         return if (isNightMode) Color.WHITE else Color.BLACK
     }
 }

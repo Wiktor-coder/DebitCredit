@@ -1,8 +1,7 @@
-package ru.github.debitcredit.ui.main
+package ru.github.debitcredit.presentation.ui.main
 
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -17,28 +16,28 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
 import ru.github.debitcredit.R
-import ru.github.debitcredit.adapter.CategoryAdapter
-import ru.github.debitcredit.customview.StatsView
 import ru.github.debitcredit.data.model.CategoryEntity
-import ru.github.debitcredit.viewmodel.MainViewModel
-import java.util.Locale
+import ru.github.debitcredit.presentation.adapter.CategoryAdapter
+import ru.github.debitcredit.customview.StatsView
+import ru.github.debitcredit.presentation.state.UiState
+import ru.github.debitcredit.presentation.viewmodel.MainViewModel
+import ru.github.debitcredit.utils.CategoryMapper
 
+@AndroidEntryPoint
 class MainFragment : Fragment() {
+
     private val viewModel: MainViewModel by viewModels()
     private lateinit var statsView: StatsView
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var addCategoryButton: ImageButton
     private lateinit var incomeButton: ImageButton
-
-    private var categories = mutableListOf<CategoryEntity>()
-    private var isDataLoaded = false
+    private lateinit var balanceTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,11 +71,9 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initializeViews(view)
-        setupClickListeners()
+        setupClickListeners(view)
         setupStatsViewClick()
-
-        observeCategories()
-        observeBalance()
+        observeData()
 
         parentFragmentManager.setFragmentResultListener(
             "category_update",
@@ -84,12 +81,7 @@ class MainFragment : Fragment() {
         ) { _, bundle ->
             val categoryKey = bundle.getString("category_key") ?: return@setFragmentResultListener
             val newAmount = bundle.getFloat("new_amount")
-
-            val category = categories.find { it.name == categoryKey }
-            category?.let {
-                val updatedCategory = it.copy(amount = newAmount)
-                viewModel.updateCategory(updatedCategory)
-            }
+            viewModel.updateCategory(categoryKey, newAmount)
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -103,120 +95,71 @@ class MainFragment : Fragment() {
         )
     }
 
-    private fun observeCategories() {
-        lifecycleScope.launch {
-            viewModel.categories.collect { categoryList ->
-                // СОЗДАЕМ НОВЫЙ СПИСОК, а не используем тот же объект
-                categories = categoryList.toMutableList()
-
-                // Обновляем адаптер
-                categoryAdapter.updateCategories(categories)
-                updateStatsView()
-
-                isDataLoaded = true
-
-                Log.d("MainFragment", "Categories updated: ${categories.size}")
-            }
-        }
-    }
-
-    private fun observeBalance() {
-        lifecycleScope.launch {
-            viewModel.balance.collect { balance ->
-                if (isAdded && view != null) {
-                    val balanceText = if (balance >= 0) {
-                        "${getString(R.string.balance)}: +${"%.2f".format(Locale.US, balance)} ₽" // +${String.format("%.2f", balance)} ₽"
-                    } else {
-                        "${getString(R.string.balance)}: +${"%.2f".format(Locale.US, balance)} ₽" // ${String.format("%.2f", balance)} ₽"
-                    }
-                    view?.findViewById<TextView>(R.id.balanceTextView)?.text = balanceText
-                }
-            }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (isDataLoaded) {
-            updateStatsView()
-        }
-    }
-
     private fun initializeViews(view: View) {
         statsView = view.findViewById(R.id.statsView)
         categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView)
         addCategoryButton = view.findViewById(R.id.addCategoryButton)
         incomeButton = view.findViewById(R.id.incomeButton)
+        balanceTextView = view.findViewById(R.id.balanceTextView)
 
         categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         categoryRecyclerView.setHasFixedSize(false)
 
         categoryAdapter = CategoryAdapter(
-            categories,
+            context = requireContext(),
             onItemClick = { category ->
-                val bundle = Bundle().apply {
-                    putString("category_name", category.name)
-                    putInt("category_id", category.id)
-                    putInt("category_color", category.color)
-                    putFloat("category_amount", category.amount)
-                    putInt("category_icon", category.iconRes)
-                }
-                findNavController().navigate(R.id.categoryEditFragment, bundle)
+                navigateToEditCategory(category)
             },
             onDeleteClick = { category ->
                 showDeleteConfirmationDialog(category)
             },
             onAddClick = { category ->
-                val bundle = Bundle().apply {
-                    putString("category_name", category.name)
-                    putInt("category_id", category.id)
-                    putInt("category_color", category.color)
-                    putFloat("category_amount", category.amount)
-                    putInt("category_icon", category.iconRes)
-                }
-                findNavController().navigate(R.id.categoryEditFragment, bundle)
-            },
-            requireContext()
+                navigateToEditCategory(category)
+            }
         )
         categoryAdapter.setSelectMode(false)
         categoryRecyclerView.adapter = categoryAdapter
     }
 
-    // В MainFragment.kt, в showDeleteConfirmationDialog:
-    private fun showDeleteConfirmationDialog(category: CategoryEntity) {
-        val displayName = when (category.name) {
-            "products" -> getString(R.string.products)
-            "utilities" -> getString(R.string.utilities)
-            "transport" -> getString(R.string.transport)
-            "health" -> getString(R.string.health)
-            "clothing" -> getString(R.string.clothing)
-            "entertainment" -> getString(R.string.entertainment)
-            "other" -> getString(R.string.other)
-            else -> category.name
+    private fun navigateToEditCategory(category: CategoryEntity) {
+        val bundle = Bundle().apply {
+            putString("category_name", category.name)
+            putInt("category_id", category.id)
+            putInt("category_color", category.color)
+            putFloat("category_amount", category.amount)
+            putInt("category_icon", category.iconRes)
         }
+        findNavController().navigate(R.id.categoryEditFragment, bundle)
+    }
 
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.delete_category)
-            .setMessage(String.format(getString(R.string.delete_category_confirmation), displayName))
-            .setPositiveButton(R.string.delete) { _, _ ->
-                viewModel.deleteCategoryById(category.id)
-                Toast.makeText(
-                    requireContext(),
-                    "$displayName ${getString(R.string.category_deleted)}",
-                    Toast.LENGTH_SHORT
-                ).show()
+    private fun observeData() {
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Loading -> {
+                    // Показать прогресс
+                }
+                is UiState.Success -> {
+                    categoryAdapter.submitList(state.data.categories)
+                    updateStatsView(state.data.categories)
+                    updateBalance(state.data.balance)
+                }
+                is UiState.Error -> {
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+                }
             }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
-
-    private fun setupStatsViewClick() {
-        statsView.setOnClickListener {
-            findNavController().navigate(R.id.statisticsFragment)
         }
     }
 
-    private fun updateStatsView() {
+    private fun updateBalance(balance: Float) {
+        val balanceText = if (balance >= 0) {
+            "${getString(R.string.balance)}: +${String.format("%.2f", balance)} ₽"
+        } else {
+            "${getString(R.string.balance)}: ${String.format("%.2f", balance)} ₽"
+        }
+        balanceTextView.text = balanceText
+    }
+
+    private fun updateStatsView(categories: List<CategoryEntity>) {
         val positiveCategories = categories.filter { it.amount > 0 }
 
         val statsData = if (positiveCategories.isNotEmpty()) {
@@ -241,7 +184,31 @@ class MainFragment : Fragment() {
         statsView.data = statsData
     }
 
-    private fun setupClickListeners() {
+    private fun showDeleteConfirmationDialog(category: CategoryEntity) {
+        val displayName = CategoryMapper.getLocalizedName(requireContext(), category.name)
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.delete_category)
+            .setMessage(String.format(getString(R.string.delete_category_confirmation), displayName))
+            .setPositiveButton(R.string.delete) { _, _ ->
+                viewModel.deleteCategory(category.id, category.name)
+                Toast.makeText(
+                    requireContext(),
+                    "$displayName ${getString(R.string.category_deleted)}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun setupStatsViewClick() {
+        statsView.setOnClickListener {
+            findNavController().navigate(R.id.statisticsFragment)
+        }
+    }
+
+    private fun setupClickListeners(view: View) {
         addCategoryButton.setOnClickListener {
             findNavController().navigate(R.id.selectCategoryFragment)
         }
@@ -250,12 +217,17 @@ class MainFragment : Fragment() {
             val bundle = Bundle().apply {
                 putBoolean("is_income_mode", true)
                 putString("category_name", "income")
-                putInt("category_color", "#4ECDC4".toColorInt())
+                putInt("category_color", Color.parseColor("#4ECDC4"))
                 putFloat("category_amount", 0f)
                 putInt("category_icon", R.drawable.ic_ruble)
                 putInt("category_id", 0)
             }
             findNavController().navigate(R.id.categoryEditFragment, bundle)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.refreshData()
     }
 }
