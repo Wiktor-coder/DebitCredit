@@ -1,6 +1,5 @@
 package ru.github.debitcredit.presentation.ui.select
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,12 +10,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
 import ru.github.debitcredit.presentation.adapter.SelectCategoryAdapter
 import ru.github.debitcredit.data.model.CategoryEntity
@@ -102,7 +99,6 @@ class SelectCategoryFragment : Fragment() {
     }
 
     private fun observeExistingCategories() {
-        // Используем observe вместо collect для LiveData
         viewModel.categories.observe(viewLifecycleOwner) { categories ->
             categories?.let {
                 existingCategories = it.toMutableList()

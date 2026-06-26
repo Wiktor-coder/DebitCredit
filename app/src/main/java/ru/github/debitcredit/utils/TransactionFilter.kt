@@ -1,6 +1,7 @@
 package ru.github.debitcredit.utils
 
 import android.content.Context
+import ru.github.debitcredit.R
 import ru.github.debitcredit.data.model.TransactionEntity
 import java.util.Calendar
 import java.util.TimeZone
@@ -44,7 +45,7 @@ class TransactionFilter {
 
         // Группируем с учетом часового пояса
         return when (period) {
-            "day" -> groupByHour(filtered, offset)
+            "day" -> groupByHour(filtered, context, offset)
             "week" -> groupByDay(filtered, offset)
             "month" -> groupByDayOfMonth(filtered, offset)
             "year" -> groupByMonth(filtered, offset)
@@ -107,7 +108,10 @@ class TransactionFilter {
         }
     }
 
-    private fun groupByHour(transactions: List<TransactionEntity>, offset: Int): List<PeriodData> {
+    private fun groupByHour(
+        transactions: List<TransactionEntity>,
+        context: Context,
+        offset: Int): List<PeriodData> {
         // Получаем текущий час с учетом пояса
         val currentHour = (Calendar.getInstance(TimeZone.getTimeZone("UTC")).get(Calendar.HOUR_OF_DAY) + offset).let {
             var h = it
@@ -142,7 +146,11 @@ class TransactionFilter {
 
         return (0..currentHour).map { hour ->
             val (expense, income) = hourMap[hour] ?: (0f to 0f)
-            PeriodData("$hour:00", expense, income)
+            PeriodData(
+                label = String.format(context.getString(R.string.hour), hour),
+                expense = expense,
+                income = income
+            )
         }
     }
 

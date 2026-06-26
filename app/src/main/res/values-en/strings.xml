@@ -35,6 +35,8 @@
     <string name="entertainment">Entertainment</string>
     <string name="other">Other</string>
     <string name="current_amount">Current amount: %.2f ₽</string>
+    <string name="percent_format">%.1f%%</string>
+    <string name="hour">%02dh</string>
     <string name="add_income">Add income</string>
     <string name="add_amount">Amount to add</string>
     <string name="category">Category</string>

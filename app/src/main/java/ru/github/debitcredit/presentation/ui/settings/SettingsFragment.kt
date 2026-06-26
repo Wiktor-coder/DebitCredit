@@ -20,9 +20,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
 import ru.github.debitcredit.presentation.viewmodel.SettingsViewModel
-import ru.github.debitcredit.utils.SettingsManager
 import ru.github.debitcredit.utils.TimeZoneHelper
-import java.util.*
+import java.util.Locale
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -42,7 +41,11 @@ class SettingsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_settings, container, false)
+        return inflater.inflate(
+            R.layout.fragment_settings,
+            container,
+            false
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -86,7 +89,8 @@ class SettingsFragment : Fragment() {
             "UTC-4", "UTC-3", "UTC-2", "UTC-1", "UTC+0", "UTC+1", "UTC+2", "UTC+3",
             "UTC+4", "UTC+5", "UTC+6", "UTC+7", "UTC+8", "UTC+9", "UTC+10", "UTC+11", "UTC+12"
         )
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, timezones)
+        val adapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, timezones)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         timezoneSpinner.adapter = adapter
 
@@ -103,24 +107,39 @@ class SettingsFragment : Fragment() {
 
     private fun setupCurrencySpinner() {
         val currencies = listOf("RUB", "USD", "EUR", "CNY", "GBP", "JPY")
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, currencies)
+        val adapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, currencies)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         currencySpinner.adapter = adapter
 
-        currencySpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedCurrency = currencies[position]
-                val rates = settingsViewModel.exchangeRates.value
-                updateCurrencyRateDisplay(selectedCurrency, rates)
+        currencySpinner.onItemSelectedListener =
+            object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: android.widget.AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val selectedCurrency = currencies[position]
+                    val rates = settingsViewModel.exchangeRates.value
+                    updateCurrencyRateDisplay(selectedCurrency, rates)
+                }
+
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
             }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        }
     }
 
     private fun updateCurrencyRateDisplay(currencyCode: String, rates: Map<String, Double>?) {
         val rate = rates?.get(currencyCode)
         currencyRateTextView.text = when {
-            rate != null && currencyCode != "RUB" -> "1 $currencyCode = ${String.format("%.4f", rate)} ₽"
+            rate != null && currencyCode != "RUB" -> "1 $currencyCode = ${
+                String.format(
+                    Locale.US,
+                    "%.4f",
+                    rate
+                )
+            } ₽"
+
             currencyCode == "RUB" -> getString(R.string.base_currency)
             else -> getString(R.string.rate_not_available)
         }
@@ -131,7 +150,8 @@ class SettingsFragment : Fragment() {
             getString(R.string.russian),
             getString(R.string.english)
         )
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, languages)
+        val adapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, languages)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         languageSpinner.adapter = adapter
     }
@@ -167,6 +187,7 @@ class SettingsFragment : Fragment() {
         settingsViewModel.saveTimeZoneOffset(offset)
     }
 
+    @Suppress("DEPRECATION")
     private fun applySettings() {
         saveSettings()
 
@@ -184,7 +205,8 @@ class SettingsFragment : Fragment() {
         config.setLocale(locale)
         resources.updateConfiguration(config, resources.displayMetrics)
 
-        Toast.makeText(requireContext(), getString(R.string.settings_applied), Toast.LENGTH_LONG).show()
+        Toast.makeText(requireContext(), getString(R.string.settings_applied), Toast.LENGTH_LONG)
+            .show()
         requireActivity().recreate()
     }
 }

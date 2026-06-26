@@ -1,23 +1,19 @@
 package ru.github.debitcredit.presentation.ui.statistics
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
 import ru.github.debitcredit.presentation.adapter.StatisticsItemsAdapter
 import ru.github.debitcredit.customview.CustomBarChart
@@ -25,9 +21,6 @@ import ru.github.debitcredit.customview.StatsView
 import ru.github.debitcredit.presentation.state.UiState
 import ru.github.debitcredit.presentation.viewmodel.MainViewModel
 import ru.github.debitcredit.utils.TransactionFilter
-import ru.github.debitcredit.utils.PeriodData
-import java.util.Calendar
-import java.util.TimeZone
 
 @AndroidEntryPoint
 class StatisticsFragment : Fragment() {
@@ -136,12 +129,10 @@ class StatisticsFragment : Fragment() {
 
     private fun observeTransactions() {
         viewModel.transactions.observe(viewLifecycleOwner) { transactions ->
-            Log.d("StatisticsFragment", "Transactions updated: ${transactions.size}")
             if (transactions.isNotEmpty()) {
                 updateChart()
             } else {
                 chart.visibility = View.GONE
-                Log.d("StatisticsFragment", "No transactions to display")
             }
         }
     }
@@ -180,19 +171,19 @@ class StatisticsFragment : Fragment() {
         val infoItems = listOf(
             InfoItem(
                 getString(R.string.spent_percent),
-                String.format("%.1f%%", percentage)
+                 getString(R.string.percent_format, percentage) //String.format("%.1f%%", percentage)
             ),
             InfoItem(
                 getString(R.string.incomes),
-                String.format("%.2f ₽", income)
+                 getString(R.string.amount_format, income) //String.format("%.2f ₽", income)
             ),
             InfoItem(
                 getString(R.string.expenses),
-                String.format("%.2f ₽", expenses)
+                 getString(R.string.amount_format, expenses) //String.format("%.2f ₽", expenses)
             ),
             InfoItem(
                 getString(R.string.remaining),
-                String.format("%.2f ₽", balance)
+                getString(R.string.amount_format, balance) //String.format("%.2f ₽", balance)
             )
         )
 
@@ -201,20 +192,10 @@ class StatisticsFragment : Fragment() {
 
     private fun updateChart() {
         val transactions = viewModel.transactions.value
-        Log.d("StatisticsFragment", "=== UPDATE CHART ===")
-        Log.d("StatisticsFragment", "Transactions count: ${transactions?.size ?: 0}")
 
         if (transactions.isNullOrEmpty()) {
             chart.visibility = View.GONE
-            Log.d("StatisticsFragment", "No transactions")
             return
-        }
-
-        // Логируем все транзакции
-        transactions.forEach { transaction ->
-            val cal = Calendar.getInstance()
-            cal.timeInMillis = transaction.date
-            Log.d("StatisticsFragment", "Transaction: ${transaction.categoryName}, amount: ${transaction.amount}, type: ${transaction.type}, hour: ${cal.get(Calendar.HOUR_OF_DAY)}, day: ${cal.get(Calendar.DAY_OF_MONTH)}")
         }
 
         // Фильтруем транзакции по выбранному периоду
@@ -224,14 +205,8 @@ class StatisticsFragment : Fragment() {
             requireContext()
         )
 
-        Log.d("StatisticsFragment", "Period data size: ${periodData.size}")
-        periodData.forEach { data ->
-            Log.d("StatisticsFragment", "Period: ${data.label}, expense: ${data.expense}, income: ${data.income}")
-        }
-
         if (periodData.isEmpty()) {
             chart.visibility = View.GONE
-            Log.d("StatisticsFragment", "No period data")
             return
         }
 

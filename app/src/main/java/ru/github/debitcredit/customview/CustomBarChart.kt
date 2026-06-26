@@ -67,6 +67,11 @@ class CustomBarChart @JvmOverloads constructor(
         isFocusable = true
     }
 
+    override fun performClick(): Boolean {
+        // Вызываем супер-метод, чтобы сработали стандартные OnClickListener, если они установлены
+        return super.performClick()
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
@@ -89,6 +94,11 @@ class CustomBarChart @JvmOverloads constructor(
                 )
 
                 invalidate()
+                return true
+            }
+            MotionEvent.ACTION_UP -> {
+                // Вызываем performClick при отпускании пальца
+                performClick()
                 return true
             }
         }
@@ -145,7 +155,7 @@ class CustomBarChart @JvmOverloads constructor(
                 textPaint.color = "#FF6B6B".toColorInt()
                 textPaint.textAlign = Paint.Align.CENTER
                 canvas.drawText(
-                    String.format("%.0f", item.expense),
+                    String.format(Locale.US,"%.0f", item.expense),
                     x + barWidth / 2,
                     paddingTop + chartHeight - expenseHeight - 8f,
                     textPaint
@@ -169,7 +179,7 @@ class CustomBarChart @JvmOverloads constructor(
                 textPaint.color = "#4ECDC4".toColorInt()
                 textPaint.textAlign = Paint.Align.CENTER
                 canvas.drawText(
-                    String.format("%.0f", item.income),
+                    String.format(Locale.US,"%.0f", item.income),
                     x + barWidth + gap + barWidth / 2,
                     paddingTop + chartHeight - incomeHeight - 8f,
                     textPaint
@@ -189,7 +199,7 @@ class CustomBarChart @JvmOverloads constructor(
             drawScrollInfo(canvas)
         }
     }
-
+    @Suppress("SameParameterValue")
     private fun drawGrid(canvas: Canvas, paddingTop: Float, chartHeight: Float) {
         gridPaint.color = "#E0E0E0".toColorInt()
         gridPaint.style = Paint.Style.STROKE

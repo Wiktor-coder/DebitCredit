@@ -27,7 +27,8 @@ class CategoryAdapter(
     private val selectedIds = mutableSetOf<Int>()
     var onSelectionChanged: ((Set<Int>) -> Unit)? = null
 
-    class CategoryViewHolder(itemView: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
+    class CategoryViewHolder(itemView: View) :
+        androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
         val nameText: TextView = itemView.findViewById(R.id.categoryNameText)
         val amountText: TextView = itemView.findViewById(R.id.categoryAmountText)
         val checkBox: CheckBox = itemView.findViewById(R.id.checkboxSelect)
@@ -46,6 +47,7 @@ class CategoryAdapter(
         }
     }
 
+    @Suppress("NotifyDataSetChanged")
     fun setSelectMode(enabled: Boolean) {
         isSelectionMode = enabled
         if (!enabled) {
@@ -66,7 +68,10 @@ class CategoryAdapter(
 
         val displayName = CategoryMapper.getLocalizedName(context, category.name)
         holder.nameText.text = displayName
-        holder.amountText.text = String.format("%.2f ₽", category.amount)
+        holder.amountText.text = context.getString(
+            R.string.amount_format,
+            category.amount
+        ) //String.format("%.2f ₽", category.amount)
 
         val drawable = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
@@ -127,10 +132,12 @@ class CategoryAdapter(
                     onAddClick(category)
                     true
                 }
+
                 2 -> {
                     onDeleteClick(category)
                     true
                 }
+
                 else -> false
             }
         }

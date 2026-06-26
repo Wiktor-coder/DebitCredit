@@ -42,6 +42,7 @@ class SelectCategoryAdapter(
 
     override fun getItemCount() = categories.size
 
+    @Suppress("NotifyDataSetChanged")
     fun updateCategories(newCategories: List<CategoryEntity>) {
         categories = newCategories
         notifyDataSetChanged()

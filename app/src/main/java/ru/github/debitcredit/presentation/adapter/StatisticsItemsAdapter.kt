@@ -1,12 +1,12 @@
 package ru.github.debitcredit.presentation.adapter
 
 import android.content.res.Configuration
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import ru.github.debitcredit.R
 import ru.github.debitcredit.presentation.ui.statistics.InfoItem
@@ -44,8 +44,9 @@ class StatisticsItemsAdapter : RecyclerView.Adapter<StatisticsItemsAdapter.ViewH
 
         // Если это "Остаток" и значение отрицательное, красим в красный
         if (item.title == holder.itemView.context.getString(R.string.remaining) &&
-            item.value.startsWith("-")) {
-            holder.amountText.setTextColor(Color.parseColor("#FF6B6B"))
+            item.value.startsWith("-")
+        ) {
+            holder.amountText.setTextColor("#FF6B6B".toColorInt())
         } else {
             holder.amountText.setTextColor(textColor)
         }
@@ -53,6 +54,7 @@ class StatisticsItemsAdapter : RecyclerView.Adapter<StatisticsItemsAdapter.ViewH
 
     override fun getItemCount() = items.size
 
+    @Suppress("NotifyDataSetChanged")
     fun updateData(newItems: List<InfoItem>) {
         items = newItems
         notifyDataSetChanged()

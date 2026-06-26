@@ -12,6 +12,7 @@ import android.graphics.SweepGradient
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
+import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
@@ -30,9 +31,9 @@ class StatsView @JvmOverloads constructor(
     private var progress = 0f
     private var valueAnimator: ValueAnimator? = null
     private var currentRotation = 0f
-
-    // Цвет текста в зависимости от темы
-    private var textColor = getTextColorFromTheme()
+    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+    }
 
     // Флаг, определяющий режим отображения (большой или маленький)
     var isSmallMode = false
@@ -140,7 +141,7 @@ class StatsView @JvmOverloads constructor(
 
         if (isSmallMode) {
             // Маленький режим: показываем сумму под графиком
-            val totalText = String.format("%.0f", total)
+            val totalText = String.format(Locale.US,"%.0f", total)
 
             // Текст суммы (крупнее)
             textPaint.textSize = fontSize
@@ -153,15 +154,12 @@ class StatsView @JvmOverloads constructor(
                 val dotX = center.x + radius * cos(dotAngle).toFloat()
                 val dotY = center.y + radius * sin(dotAngle).toFloat()
 
-                val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = data.firstOrNull()?.color ?: Color.WHITE
-                    style = Paint.Style.FILL
-                }
+                dotPaint.color = data.firstOrNull()?.color ?: Color.WHITE
                 canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
             }
         } else {
             // Большой режим: показываем сумму в центре
-            val totalText = String.format("%.0f", total)
+            val totalText = String.format(Locale.US,"%.0f", total)
             textPaint.textSize = fontSize
             canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 4, textPaint)
 
@@ -172,10 +170,7 @@ class StatsView @JvmOverloads constructor(
                 val dotX = center.x + radius * cos(dotAngle).toFloat()
                 val dotY = center.y + radius * sin(dotAngle).toFloat()
 
-                val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = data.firstOrNull()?.color ?: Color.WHITE
-                    style = Paint.Style.FILL
-                }
+                dotPaint.color = data.firstOrNull()?.color ?: Color.WHITE
                 canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
             }
         }
