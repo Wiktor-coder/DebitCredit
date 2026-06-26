@@ -3,12 +3,7 @@ package ru.github.debitcredit.customview
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.PointF
-import android.graphics.RectF
-import android.graphics.SweepGradient
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
@@ -31,20 +26,16 @@ class StatsView @JvmOverloads constructor(
     private var progress = 0f
     private var valueAnimator: ValueAnimator? = null
     private var currentRotation = 0f
-    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
 
-    // Флаг, определяющий режим отображения (большой или маленький)
+    var showPercentage = false
+
     var isSmallMode = false
         set(value) {
             field = value
             if (value) {
-                // Для маленького режима делаем линии тоньше и шрифт меньше
                 lineWidth = dp(12f).toFloat()
                 fontSize = dp(16f).toFloat()
             } else {
-                // Для большого режима возвращаем нормальные размеры
                 lineWidth = dp(24f).toFloat()
                 fontSize = dp(32f).toFloat()
             }
@@ -86,19 +77,12 @@ class StatsView @JvmOverloads constructor(
     }
 
     private fun getTextColorFromTheme(): Int {
-        // Определяем, темная тема или светлая
         val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
-        return if (isNightMode) {
-            Color.WHITE
-        } else {
-            Color.BLACK
-        }
+        return if (isNightMode) Color.WHITE else Color.BLACK
     }
 
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
-        // Обновляем цвет текста при смене темы
         textPaint.color = getTextColorFromTheme()
         invalidate()
     }
@@ -123,7 +107,7 @@ class StatsView @JvmOverloads constructor(
         var startAngle = -90f + currentRotation
 
         // Рисуем сегменты
-        for ((index, category) in data.withIndex()) {
+        for ((_, category) in data.withIndex()) {
             val sweepAngle = 360f * (category.amount / total) * progress
 
             val shader = SweepGradient(
@@ -139,54 +123,74 @@ class StatsView @JvmOverloads constructor(
             startAngle += sweepAngle
         }
 
-        if (isSmallMode) {
-            // Маленький режим: показываем сумму под графиком
-            val totalText = String.format(Locale.US,"%.0f", total)
-
-            // Текст суммы (крупнее)
-            textPaint.textSize = fontSize
-            canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 3, textPaint)
-
-            // Рисуем точку-индикатор сверху (уменьшенную)
-            if (data.isNotEmpty()) {
-                val dotRadius = lineWidth * 0.5f
-                val dotAngle = Math.toRadians((-90f + currentRotation).toDouble())
-                val dotX = center.x + radius * cos(dotAngle).toFloat()
-                val dotY = center.y + radius * sin(dotAngle).toFloat()
-
-                dotPaint.color = data.firstOrNull()?.color ?: Color.WHITE
-                canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
-            }
+        // Рисуем текст в центре
+        if (showPercentage) {
+            drawPercentageText(canvas)
         } else {
-            // Большой режим: показываем сумму в центре
-            val totalText = String.format(Locale.US,"%.0f", total)
-            textPaint.textSize = fontSize
-            canvas.drawText("$totalText ₽", center.x, center.y + fontSize / 4, textPaint)
+            drawTotalSum(canvas, total)
+        }
 
-            // Рисуем точку-индикатор сверху (нормальную)
-            if (data.isNotEmpty()) {
-                val dotRadius = lineWidth * 0.5f
-                val dotAngle = Math.toRadians((-90f + currentRotation).toDouble())
-                val dotX = center.x + radius * cos(dotAngle).toFloat()
-                val dotY = center.y + radius * sin(dotAngle).toFloat()
+        drawIndicatorDot(canvas)
+    }
 
-                dotPaint.color = data.firstOrNull()?.color ?: Color.WHITE
-                canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
+    private fun drawTotalSum(canvas: Canvas, total: Float) {
+        textPaint.textSize = fontSize * 0.8f
+        textPaint.color = getTextColorFromTheme()
+        textPaint.textAlign = Paint.Align.CENTER
+
+        val totalText = String.format(Locale.US,"%.0f", total)
+        canvas.drawText("$totalText ₽", center.x, center.y + fontSize * 0.3f, textPaint)
+    }
+
+    private fun drawPercentageText(canvas: Canvas) {
+        // Находим данные о потраченном (spent)
+        val spentData = data.firstOrNull { it.name == "spent" }
+        val percentage = if (spentData != null) {
+            // Процент - это значение spent, так как мы передаем его в amount
+            spentData.amount.toInt()
+        } else {
+            // Если данных нет, вычисляем из первого элемента
+            val total = data.sumOf { it.amount.toDouble() }.toFloat()
+            if (total > 0) {
+                (data.first().amount / total * 100).toInt()
+            } else {
+                0
             }
+        }
+
+        // Показываем процент
+        textPaint.textSize = fontSize * 0.9f
+        textPaint.color = getTextColorFromTheme()
+        textPaint.textAlign = Paint.Align.CENTER
+
+        val percentText = "$percentage%"
+        canvas.drawText(percentText, center.x, center.y + fontSize * 0.3f, textPaint)
+    }
+
+    private fun drawIndicatorDot(canvas: Canvas) {
+        if (data.isNotEmpty()) {
+            val dotRadius = lineWidth * 0.5f
+            val dotAngle = Math.toRadians((-90f + currentRotation).toDouble())
+            val dotX = center.x + radius * cos(dotAngle).toFloat()
+            val dotY = center.y + radius * sin(dotAngle).toFloat()
+
+            val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = data.firstOrNull()?.color ?: Color.WHITE
+                style = Paint.Style.FILL
+            }
+            canvas.drawCircle(dotX, dotY, dotRadius, dotPaint)
         }
     }
 
     fun startAnimation() {
-        // Полностью останавливаем предыдущую анимацию
         valueAnimator?.cancel()
         valueAnimator = null
 
         if (visibility != VISIBLE) return
 
-        // Сбрасываем прогресс перед началом
         progress = 0f
         currentRotation = 0f
-        invalidate()  // Принудительно перерисовываем сброшенное состояние
+        invalidate()
 
         valueAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 1500

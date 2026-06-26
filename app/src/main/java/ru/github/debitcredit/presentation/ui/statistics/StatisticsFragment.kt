@@ -148,7 +148,7 @@ class StatisticsFragment : Fragment() {
             StatsView.CategoryData(
                 name = getString(R.string.spent),
                 amount = percentage,
-                color = "#FF6B6B".toColorInt()
+                color = "#d91023".toColorInt()
             ),
             StatsView.CategoryData(
                 name = getString(R.string.remaining),
@@ -158,6 +158,7 @@ class StatisticsFragment : Fragment() {
         )
 
         statsView.isSmallMode = false
+        statsView.showPercentage = true
         statsView.data = statsData
     }
 

@@ -39,28 +39,6 @@ class MainFragment : Fragment() {
     private lateinit var incomeButton: ImageButton
     private lateinit var balanceTextView: TextView
 
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        setHasOptionsMenu(true)
-//    }
-//
-//    @Suppress("DEPRECATION")
-//    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-//        inflater.inflate(R.menu.main_menu, menu)
-//        super.onCreateOptionsMenu(menu, inflater)
-//    }
-//
-//    @Suppress("DEPRECATION")
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        return when (item.itemId) {
-//            R.id.action_settings -> {
-//                findNavController().navigate(R.id.settingsFragment)
-//                true
-//            }
-//            else -> super.onOptionsItemSelected(item)
-//        }
-//    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -185,6 +163,7 @@ class MainFragment : Fragment() {
         }
 
         statsView.isSmallMode = false
+        statsView.showPercentage = false
         statsView.data = statsData
     }
 
