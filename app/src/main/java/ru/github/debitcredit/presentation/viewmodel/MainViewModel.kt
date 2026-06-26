@@ -86,6 +86,7 @@ class MainViewModel @Inject constructor(
                     .launchIn(this)
             } catch (e: Exception) {
                 // Обработка ошибки
+                e.stackTrace
             }
         }
     }
@@ -101,6 +102,7 @@ class MainViewModel @Inject constructor(
                 addCategoryUseCase(category)
             } catch (e: Exception) {
                 // Обработка ошибки
+                e.stackTrace
             }
         }
     }
@@ -111,6 +113,7 @@ class MainViewModel @Inject constructor(
                 deleteCategoryUseCase(categoryId, categoryName)
             } catch (e: Exception) {
                 // Обработка ошибки
+                e.stackTrace
             }
         }
     }
@@ -122,6 +125,7 @@ class MainViewModel @Inject constructor(
                 loadTransactions()
             } catch (e: Exception) {
                 // Обработка ошибки
+                e.stackTrace
             }
         }
     }
@@ -137,6 +141,7 @@ class MainViewModel @Inject constructor(
                         addCategoryUseCase(updatedCategory)
                     } catch (e: Exception) {
                         // Обработка ошибки
+                        e.stackTrace
                     }
                 }
             }

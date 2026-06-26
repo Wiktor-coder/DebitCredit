@@ -22,7 +22,7 @@ import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.github.debitcredit.R
 import ru.github.debitcredit.presentation.viewmodel.MainViewModel
-import java.util.Locale
+
 @AndroidEntryPoint
 class CategoryEditFragment : Fragment() {
     private val viewModel: MainViewModel by viewModels(
@@ -155,7 +155,12 @@ class CategoryEditFragment : Fragment() {
                 viewModel.addTransaction("income", newAmount, "income")
                 Toast.makeText(
                     requireContext(),
-                    "${getString(R.string.income_added)}: ${String.format("%.2f", newAmount)} ₽",
+                    "${getString(R.string.income_added)}: ${
+                        context?.getString(
+                            R.string.amount_format,
+                            newAmount
+                        )
+                    } ₽",
                     Toast.LENGTH_SHORT
                 ).show()
                 findNavController().popBackStack()
@@ -172,7 +177,17 @@ class CategoryEditFragment : Fragment() {
 
                 Toast.makeText(
                     requireContext(),
-                    "${getString(R.string.amount_added)}: ${String.format("%.2f", newAmount)} ₽\n${getString(R.string.new_amount)}: ${String.format("%.2f", updatedAmount)} ₽",
+                    "${getString(R.string.amount_added)}: ${
+                        context?.getString(
+                            R.string.amount_format,
+                            newAmount
+                        )
+                    } ₽\n${getString(R.string.new_amount)}: ${
+                        context?.getString(
+                            R.string.amount_format,
+                            updatedAmount
+                        )
+                    } ₽",
                     Toast.LENGTH_LONG
                 ).show()
                 findNavController().popBackStack()
@@ -181,14 +196,16 @@ class CategoryEditFragment : Fragment() {
     }
 
     private fun showKeyboard() {
-        val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm =
+            requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         amountEditText.post {
             imm.showSoftInput(amountEditText, 0)
         }
     }
 
     private fun hideKeyboard() {
-        val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm =
+            requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(amountEditText.windowToken, 0)
     }
 

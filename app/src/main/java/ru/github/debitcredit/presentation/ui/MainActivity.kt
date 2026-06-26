@@ -4,6 +4,8 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.navigation.NavController
@@ -12,10 +14,12 @@ import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
 import ru.github.debitcredit.R
 import java.util.Locale
+
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
+    private lateinit var toolbar: MaterialToolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -40,7 +44,8 @@ class MainActivity : AppCompatActivity() {
         val navHostId = R.id.nav_host_fragment
         Log.d("MainActivity", "nav_host_fragment ID: $navHostId")
 
-        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        // Инициализируем toolbar
+        toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
@@ -50,6 +55,40 @@ class MainActivity : AppCompatActivity() {
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
+
+        // Настраиваем меню в Toolbar после инициализации
+        setupToolbarMenu()
+    }
+
+    private fun setupToolbarMenu() {
+        // Создаем меню через стандартный способ
+        toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_settings -> {
+                    navController.navigate(R.id.settingsFragment)
+                    true
+                }
+                else -> false
+            }
+        }
+        // Принудительно обновляем меню
+        invalidateOptionsMenu()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Инфлейтим меню через стандартный метод
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_settings -> {
+                navController.navigate(R.id.settingsFragment)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -65,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun setAppLocale(languageCode: String) {
         val locale = Locale(languageCode)
         Locale.setDefault(locale)

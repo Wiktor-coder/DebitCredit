@@ -1,6 +1,5 @@
 package ru.github.debitcredit.presentation.ui.main
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -19,11 +18,12 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
 import ru.github.debitcredit.R
+import ru.github.debitcredit.customview.StatsView
 import ru.github.debitcredit.data.model.CategoryEntity
 import ru.github.debitcredit.presentation.adapter.CategoryAdapter
-import ru.github.debitcredit.customview.StatsView
 import ru.github.debitcredit.presentation.state.UiState
 import ru.github.debitcredit.presentation.viewmodel.MainViewModel
 import ru.github.debitcredit.utils.CategoryMapper
@@ -39,25 +39,27 @@ class MainFragment : Fragment() {
     private lateinit var incomeButton: ImageButton
     private lateinit var balanceTextView: TextView
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.main_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_settings -> {
-                findNavController().navigate(R.id.settingsFragment)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        setHasOptionsMenu(true)
+//    }
+//
+//    @Suppress("DEPRECATION")
+//    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+//        inflater.inflate(R.menu.main_menu, menu)
+//        super.onCreateOptionsMenu(menu, inflater)
+//    }
+//
+//    @Suppress("DEPRECATION")
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//            R.id.action_settings -> {
+//                findNavController().navigate(R.id.settingsFragment)
+//                true
+//            }
+//            else -> super.onOptionsItemSelected(item)
+//        }
+//    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,7 +73,7 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initializeViews(view)
-        setupClickListeners(view)
+        setupClickListeners()
         setupStatsViewClick()
         observeData()
 
@@ -138,11 +140,13 @@ class MainFragment : Fragment() {
                 is UiState.Loading -> {
                     // Показать прогресс
                 }
+
                 is UiState.Success -> {
                     categoryAdapter.submitList(state.data.categories)
                     updateStatsView(state.data.categories)
                     updateBalance(state.data.balance)
                 }
+
                 is UiState.Error -> {
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
                 }
@@ -152,9 +156,9 @@ class MainFragment : Fragment() {
 
     private fun updateBalance(balance: Float) {
         val balanceText = if (balance >= 0) {
-            "${getString(R.string.balance)}: +${String.format("%.2f", balance)} ₽"
+            "${getString(R.string.balance)}: +${getString(R.string.amount_format, balance)} ₽"
         } else {
-            "${getString(R.string.balance)}: ${String.format("%.2f", balance)} ₽"
+            "${getString(R.string.balance)}: ${getString(R.string.amount_format, balance)} ₽"
         }
         balanceTextView.text = balanceText
     }
@@ -189,7 +193,12 @@ class MainFragment : Fragment() {
 
         AlertDialog.Builder(requireContext())
             .setTitle(R.string.delete_category)
-            .setMessage(String.format(getString(R.string.delete_category_confirmation), displayName))
+            .setMessage(
+                String.format(
+                    getString(R.string.delete_category_confirmation),
+                    displayName
+                )
+            )
             .setPositiveButton(R.string.delete) { _, _ ->
                 viewModel.deleteCategory(category.id, category.name)
                 Toast.makeText(
@@ -208,7 +217,7 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun setupClickListeners(view: View) {
+    private fun setupClickListeners() {
         addCategoryButton.setOnClickListener {
             findNavController().navigate(R.id.selectCategoryFragment)
         }
@@ -217,7 +226,7 @@ class MainFragment : Fragment() {
             val bundle = Bundle().apply {
                 putBoolean("is_income_mode", true)
                 putString("category_name", "income")
-                putInt("category_color", Color.parseColor("#4ECDC4"))
+                putInt("category_color", "#4ECDC4".toColorInt())
                 putFloat("category_amount", 0f)
                 putInt("category_icon", R.drawable.ic_ruble)
                 putInt("category_id", 0)

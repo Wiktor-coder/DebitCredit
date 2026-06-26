@@ -41,7 +41,9 @@
     <string name="category_selected">уже добавлена</string>
     <string name="rub">₽</string>
     <string name="add_category_question">Добавить категорию</string>
+    <string name="percent_format">%.1f%%</string>
     <string name="amount_format">%.2f ₽</string>
+    <string name="hour">%02dч</string>
 
     <!-- Настройки -->
     <string name="currency">Валюта</string>

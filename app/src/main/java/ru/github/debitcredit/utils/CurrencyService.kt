@@ -2,6 +2,7 @@ package ru.github.debitcredit.utils
 
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
@@ -9,21 +10,33 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 data class Valute(
-    val ID: String,
-    val NumCode: String,
-    val CharCode: String,
-    val Nominal: Int,
-    val Name: String,
-    val Value: Double,
-    val Previous: Double
+    @SerializedName("ID")
+    val id: String,
+    @SerializedName("NumCode")
+    val numCode: String,
+    @SerializedName("CharCode")
+    val charCode: String,
+    @SerializedName("Nominal")
+    val nominal: Int,
+    @SerializedName("Name")
+    val name: String,
+    @SerializedName("Value")
+    val value: Double,
+    @SerializedName("Previous")
+    val previous: Double
 )
 
 data class CurrencyResponse(
-    val Date: String,
-    val PreviousDate: String,
-    val PreviousURL: String,
-    val Timestamp: String,
-    val Valute: Map<String, Valute>
+    @SerializedName("Date")
+    val date: String,
+    @SerializedName("PreviousDate")
+    val previousDate: String,
+    @SerializedName("PreviousURL")
+    val previousUrl: String,
+    @SerializedName("Timestamp")
+    val timestamp: String,
+    @SerializedName("Valute")
+    val valute: Map<String, Valute>
 )
 
 object CurrencyService {
@@ -43,9 +56,9 @@ object CurrencyService {
                 val currencyResponse = gson.fromJson(json, CurrencyResponse::class.java)
 
                 val rates = mutableMapOf<String, Double>()
-                rates["RUB"] = 1.0
-                currencyResponse.Valute.forEach { (code, valute) ->
-                    rates[code] = valute.Value / valute.Nominal
+                rates["RUB"] = 0.0
+                currencyResponse.valute.forEach { (code, valute) ->
+                    rates[code] = valute.value / valute.nominal
                 }
                 rates
             } else {

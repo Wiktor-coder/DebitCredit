@@ -40,8 +40,4 @@ class SettingsManager(private val context: Context) {
     fun saveTimeZoneOffset(offset: Int) {
         prefs.edit { putInt(KEY_TIMEZONE_OFFSET, offset) }
     }
-
-    fun clear() {
-        prefs.edit { clear() }
-    }
 }

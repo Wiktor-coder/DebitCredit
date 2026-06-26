@@ -19,13 +19,9 @@ class SettingsViewModel @Inject constructor(
     private val _exchangeRates = MutableStateFlow<Map<String, Double>?>(null)
     val exchangeRates: StateFlow<Map<String, Double>?> = _exchangeRates.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
     fun getCurrency(): String = settingsManager.getCurrency()
     fun isDarkTheme(): Boolean = settingsManager.isDarkTheme()
     fun getLanguage(): String = settingsManager.getLanguage()
-    fun getTimeZoneOffset(): Int = settingsManager.getTimeZoneOffset()
 
     fun saveCurrency(currency: String) {
         settingsManager.saveCurrency(currency)
@@ -45,19 +41,12 @@ class SettingsViewModel @Inject constructor(
 
     fun loadExchangeRates() {
         viewModelScope.launch {
-            _isLoading.value = true
             try {
                 val rates = CurrencyService.getExchangeRates()
                 _exchangeRates.value = rates
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _exchangeRates.value = null
-            } finally {
-                _isLoading.value = false
             }
         }
-    }
-
-    fun getRateForCurrency(currencyCode: String): Double? {
-        return _exchangeRates.value?.get(currencyCode)
     }
 }
