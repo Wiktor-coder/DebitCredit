@@ -1,4 +1,4 @@
-package ru.github.debitcredit.ui.select
+package ru.github.debitcredit.presentation.ui.select
 
 import android.graphics.Color
 import android.os.Bundle
@@ -8,17 +8,20 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
-import ru.github.debitcredit.adapter.SelectCategoryAdapter
+import ru.github.debitcredit.presentation.adapter.SelectCategoryAdapter
 import ru.github.debitcredit.data.model.CategoryEntity
-import ru.github.debitcredit.viewmodel.MainViewModel
+import ru.github.debitcredit.presentation.viewmodel.MainViewModel
+import ru.github.debitcredit.utils.CategoryMapper
 
 data class PredefinedCategory(
     val key: String,
@@ -26,6 +29,7 @@ data class PredefinedCategory(
     val colorHex: String
 )
 
+@AndroidEntryPoint
 class SelectCategoryFragment : Fragment() {
 
     private val viewModel: MainViewModel by viewModels(
@@ -39,13 +43,13 @@ class SelectCategoryFragment : Fragment() {
     private var existingCategories = mutableListOf<CategoryEntity>()
 
     private val predefinedCategories = listOf(
-        PredefinedCategory("products", R.string.products, "#FF5252"),
-        PredefinedCategory("utilities", R.string.utilities, "#FFB74D"),
-        PredefinedCategory("transport", R.string.transport, "#FF4081"),
-        PredefinedCategory("health", R.string.health, "#4CAF50"),
+        PredefinedCategory("products", R.string.products, "#d91023"),
+        PredefinedCategory("utilities", R.string.utilities, "#fa2f70"),
+        PredefinedCategory("transport", R.string.transport, "#fc8f30"),
+        PredefinedCategory("health", R.string.health, "#18b51e"),
         PredefinedCategory("clothing", R.string.clothing, "#9C27B0"),
-        PredefinedCategory("entertainment", R.string.entertainment, "#2196F3"),
-        PredefinedCategory("other", R.string.other, "#78909C")
+        PredefinedCategory("entertainment", R.string.entertainment, "#081fa1"),
+        PredefinedCategory("other", R.string.other, "#52636b")
     )
 
     override fun onCreateView(
@@ -72,39 +76,36 @@ class SelectCategoryFragment : Fragment() {
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Создаем список категорий
         val categoryList = predefinedCategories.map { category ->
             CategoryEntity(
                 id = 0,
                 name = category.key,
                 amount = 0f,
-                color = Color.parseColor(category.colorHex),
-                iconRes = getIconResByKey(category.key)
+                color = category.colorHex.toColorInt(),
+                iconRes = CategoryMapper.getIconRes(category.key)
             )
         }
-        // В адаптере показываем локализованные названия
-        val displayAdapter = SelectCategoryAdapter(categoryList, requireContext()) { category ->
-            checkAndAddCategory(category)
-        }
-        recyclerView.adapter = displayAdapter
-    }
 
-    private fun getIconResByKey(key: String): Int {
-        return when (key) {
-            "products" -> R.drawable.ic_trolley
-            "utilities" -> R.drawable.ic_house
-            "transport" -> R.drawable.ic_car
-            "health" -> R.drawable.ic_heart
-            "clothing" -> R.drawable.ic_clothes
-            "entertainment" -> R.drawable.ic_amusement
-            "other" -> R.drawable.ic_yin_yang
-            else -> android.R.drawable.ic_menu_edit
-        }
+        // Создаем адаптер с правильным порядком аргументов
+        adapter = SelectCategoryAdapter(
+            context = requireContext(),
+            onCategoryClick = { category ->
+                checkAndAddCategory(category)
+            }
+        )
+
+        // Устанавливаем категории
+        adapter.updateCategories(categoryList)
+        recyclerView.adapter = adapter
     }
 
     private fun observeExistingCategories() {
-        lifecycleScope.launch {
-            viewModel.categories.collect { categories ->
-                existingCategories = categories.toMutableList()
+        // Используем observe вместо collect для LiveData
+        viewModel.categories.observe(viewLifecycleOwner) { categories ->
+            categories?.let {
+                existingCategories = it.toMutableList()
                 updateAvailableCategories()
             }
         }
@@ -119,11 +120,12 @@ class SelectCategoryFragment : Fragment() {
                     id = 0,
                     name = category.key,
                     amount = 0f,
-                    color = Color.parseColor(category.colorHex),
-                    iconRes = getIconResByKey(category.key)
+                    color = category.colorHex.toColorInt(),
+                    iconRes = CategoryMapper.getIconRes(category.key)
                 )
             }
-        (recyclerView.adapter as? SelectCategoryAdapter)?.updateCategories(availableCategories)
+
+        adapter.updateCategories(availableCategories)
 
         if (availableCategories.isEmpty()) {
             Toast.makeText(requireContext(),

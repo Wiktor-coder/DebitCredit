@@ -1,4 +1,4 @@
-package ru.github.debitcredit.ui.edit
+package ru.github.debitcredit.presentation.ui.edit
 
 import android.app.Activity
 import android.graphics.Color
@@ -19,10 +19,11 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import ru.github.debitcredit.R
-import ru.github.debitcredit.viewmodel.MainViewModel
+import ru.github.debitcredit.presentation.viewmodel.MainViewModel
 import java.util.Locale
-
+@AndroidEntryPoint
 class CategoryEditFragment : Fragment() {
     private val viewModel: MainViewModel by viewModels(
         ownerProducer = { requireActivity() }
@@ -154,16 +155,12 @@ class CategoryEditFragment : Fragment() {
                 viewModel.addTransaction("income", newAmount, "income")
                 Toast.makeText(
                     requireContext(),
-                    "${getString(R.string.income_added)}: ${
-                        "%.2f".format(
-                            Locale.getDefault(),
-                            newAmount
-                        )
-                    } ₽",
+                    "${getString(R.string.income_added)}: ${String.format("%.2f", newAmount)} ₽",
                     Toast.LENGTH_SHORT
                 ).show()
                 findNavController().popBackStack()
             } else {
+                // Передаем контекст через ViewModel
                 viewModel.addTransaction(categoryKey, newAmount, "expense")
 
                 val updatedAmount = originalAmount + newAmount
@@ -175,12 +172,7 @@ class CategoryEditFragment : Fragment() {
 
                 Toast.makeText(
                     requireContext(),
-                    "${getString(R.string.amount_added)}: ${
-                        "%.2f".format(
-                            Locale.getDefault(), 
-                            newAmount
-                        )
-                    } ₽\n${getString(R.string.new_amount)}: ${"%.2f".format(Locale.getDefault(), updatedAmount)} ₽",
+                    "${getString(R.string.amount_added)}: ${String.format("%.2f", newAmount)} ₽\n${getString(R.string.new_amount)}: ${String.format("%.2f", updatedAmount)} ₽",
                     Toast.LENGTH_LONG
                 ).show()
                 findNavController().popBackStack()

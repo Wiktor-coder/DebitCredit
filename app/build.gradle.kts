@@ -3,7 +3,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.kapt)
+//    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -40,10 +42,10 @@ android {
 }
 
 // Добавляем параметры для Room KSP
-ksp {
-    arg("room.generateKotlin", "true")  // Генерировать Kotlin код вместо Java
-    arg("room.incremental", "true")      // Инкрементальная компиляция
-}
+//ksp {
+//    arg("room.generateKotlin", "true")
+//    arg("room.incremental", "true")
+//}
 
 kotlin {
     compilerOptions {
@@ -75,7 +77,15 @@ dependencies {
     // Room dependencies
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
+//    ksp(libs.androidx.room.compiler)
+
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-compiler:2.51.1")
+
+    // Hilt Navigation
+    implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
@@ -83,4 +93,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+}
+
+// Для Hilt
+kapt {
+    correctErrorTypes = true
 }

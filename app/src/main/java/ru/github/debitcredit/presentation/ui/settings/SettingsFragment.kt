@@ -1,10 +1,6 @@
-package ru.github.debitcredit.ui.settings
+package ru.github.debitcredit.presentation.ui.settings
 
-import android.content.Context
-import android.content.SharedPreferences
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,20 +11,24 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SwitchCompat
-import androidx.core.content.edit
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
-import ru.github.debitcredit.utils.CurrencyService
+import ru.github.debitcredit.presentation.viewmodel.SettingsViewModel
+import ru.github.debitcredit.utils.SettingsManager
 import ru.github.debitcredit.utils.TimeZoneHelper
 import java.util.*
 
+@AndroidEntryPoint
 class SettingsFragment : Fragment() {
 
-    private lateinit var sharedPreferences: SharedPreferences
+    private val settingsViewModel: SettingsViewModel by viewModels()
+
     private lateinit var currencySpinner: Spinner
     private lateinit var themeSwitch: SwitchCompat
     private lateinit var languageSpinner: Spinner
@@ -36,16 +36,6 @@ class SettingsFragment : Fragment() {
     private lateinit var backButton: ImageButton
     private lateinit var currencyRateTextView: TextView
     private lateinit var timezoneSpinner: Spinner
-
-    private var exchangeRates: Map<String, Double>? = null
-
-    companion object {
-        const val PREFS_NAME = "app_settings"
-        const val KEY_CURRENCY = "currency"
-        const val KEY_THEME = "theme"
-        const val KEY_LANGUAGE = "language"
-        const val DEFAULT_LANGUAGE = "ru" // Русский по умолчанию
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,8 +47,6 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         currencySpinner = view.findViewById(R.id.currencySpinner)
         themeSwitch = view.findViewById(R.id.themeSwitch)
@@ -73,11 +61,22 @@ class SettingsFragment : Fragment() {
         setupLanguageSpinner()
         setupTimezoneSpinner()
         loadSavedSettings()
-        loadExchangeRates()
+
+        settingsViewModel.loadExchangeRates()
+        observeExchangeRates()
 
         applyButton.setOnClickListener {
             saveSettings()
             applySettings()
+        }
+    }
+
+    private fun observeExchangeRates() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsViewModel.exchangeRates.collect { rates ->
+                val selectedCurrency = currencySpinner.selectedItem.toString()
+                updateCurrencyRateDisplay(selectedCurrency, rates)
+            }
         }
     }
 
@@ -111,22 +110,15 @@ class SettingsFragment : Fragment() {
         currencySpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val selectedCurrency = currencies[position]
-                updateCurrencyRateDisplay(selectedCurrency)
+                val rates = settingsViewModel.exchangeRates.value
+                updateCurrencyRateDisplay(selectedCurrency, rates)
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
     }
 
-    private fun loadExchangeRates() {
-        lifecycleScope.launch {
-            exchangeRates = CurrencyService.getExchangeRates()
-            val selectedCurrency = currencySpinner.selectedItem.toString()
-            updateCurrencyRateDisplay(selectedCurrency)
-        }
-    }
-
-    private fun updateCurrencyRateDisplay(currencyCode: String) {
-        val rate = exchangeRates?.get(currencyCode)
+    private fun updateCurrencyRateDisplay(currencyCode: String, rates: Map<String, Double>?) {
+        val rate = rates?.get(currencyCode)
         currencyRateTextView.text = when {
             rate != null && currencyCode != "RUB" -> "1 $currencyCode = ${String.format("%.4f", rate)} ₽"
             currencyCode == "RUB" -> getString(R.string.base_currency)
@@ -134,7 +126,6 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    // только русский и английский
     private fun setupLanguageSpinner() {
         val languages = listOf(
             getString(R.string.russian),
@@ -146,15 +137,14 @@ class SettingsFragment : Fragment() {
     }
 
     private fun loadSavedSettings() {
-        val savedCurrency = sharedPreferences.getString(KEY_CURRENCY, "RUB") ?: "RUB"
+        val savedCurrency = settingsViewModel.getCurrency()
         val currencies = listOf("RUB", "USD", "EUR", "CNY", "GBP", "JPY")
         currencySpinner.setSelection(currencies.indexOf(savedCurrency))
 
-        val isDarkTheme = sharedPreferences.getBoolean(KEY_THEME, false)
+        val isDarkTheme = settingsViewModel.isDarkTheme()
         themeSwitch.isChecked = isDarkTheme
 
-        // Загружаем сохраненный язык, по умолчанию русский
-        val savedLanguage = sharedPreferences.getString(KEY_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
+        val savedLanguage = settingsViewModel.getLanguage()
         val languages = listOf("ru", "en")
         languageSpinner.setSelection(languages.indexOf(savedLanguage).coerceAtLeast(0))
     }
@@ -162,45 +152,33 @@ class SettingsFragment : Fragment() {
     private fun saveSettings() {
         val selectedCurrency = currencySpinner.selectedItem.toString()
         val isDarkTheme = themeSwitch.isChecked
-        // Сохраняем язык: 0 - русский, 1 - английский
         val selectedLanguage = when (languageSpinner.selectedItemPosition) {
             0 -> "ru"
             1 -> "en"
             else -> "ru"
         }
 
-        sharedPreferences.edit {
-            putString(KEY_CURRENCY, selectedCurrency)
-            putBoolean(KEY_THEME, isDarkTheme)
-            putString(KEY_LANGUAGE, selectedLanguage)
-        }
+        settingsViewModel.saveCurrency(selectedCurrency)
+        settingsViewModel.saveTheme(isDarkTheme)
+        settingsViewModel.saveLanguage(selectedLanguage)
 
         val selectedTimezone = timezoneSpinner.selectedItem.toString()
         val offset = selectedTimezone.replace("UTC", "").toIntOrNull() ?: 0
-        TimeZoneHelper.saveTimeZoneOffset(requireContext(), offset)
+        settingsViewModel.saveTimeZoneOffset(offset)
     }
 
     private fun applySettings() {
         saveSettings()
 
-        val isDarkTheme = themeSwitch.isChecked
+        val isDarkTheme = settingsViewModel.isDarkTheme()
         if (isDarkTheme) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        // Получаем выбранный язык: 0 - русский, 1 - английский
-        val selectedLanguage = when (languageSpinner.selectedItemPosition) {
-            0 -> "ru"
-            1 -> "en"
-            else -> "ru"
-        }
-
+        val selectedLanguage = settingsViewModel.getLanguage()
         val locale = Locale(selectedLanguage)
-        Log.d("SettingsFragment", "Selected language: $selectedLanguage, Locale: ${locale.language}")
-
-        // Устанавливаем локаль
         Locale.setDefault(locale)
         val config = resources.configuration
         config.setLocale(locale)

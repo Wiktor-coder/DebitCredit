@@ -1,4 +1,4 @@
-package ru.github.debitcredit.adapter
+package ru.github.debitcredit.presentation.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -9,23 +9,14 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import ru.github.debitcredit.R
 import ru.github.debitcredit.data.model.CategoryEntity
+import ru.github.debitcredit.utils.CategoryMapper
 
 class SelectCategoryAdapter(
-    private var categories: List<CategoryEntity>,
     private val context: Context,
     private val onCategoryClick: (CategoryEntity) -> Unit
 ) : RecyclerView.Adapter<SelectCategoryAdapter.SelectCategoryViewHolder>() {
 
-    // Маппинг ключей на ресурсы строк
-    private val categoryNameMap = mapOf(
-        "products" to R.string.products,
-        "utilities" to R.string.utilities,
-        "transport" to R.string.transport,
-        "health" to R.string.health,
-        "clothing" to R.string.clothing,
-        "entertainment" to R.string.entertainment,
-        "other" to R.string.other
-    )
+    private var categories: List<CategoryEntity> = emptyList()
 
     class SelectCategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardView: CardView = itemView.findViewById(R.id.categoryCard)
@@ -40,8 +31,7 @@ class SelectCategoryAdapter(
 
     override fun onBindViewHolder(holder: SelectCategoryViewHolder, position: Int) {
         val category = categories[position]
-        // Показываем локализованное имя
-        val displayName = categoryNameMap[category.name]?.let { context.getString(it) } ?: category.name
+        val displayName = CategoryMapper.getLocalizedName(context, category.name)
         holder.nameText.text = displayName
         holder.cardView.setCardBackgroundColor(category.color)
 

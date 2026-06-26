@@ -69,4 +69,5 @@
 
     <!-- О приложении -->
     <string name="app_description">DebitCredit\nВерсия 1.0\n\nПриложение для учёта доходов и расходов</string>
+    <string name="Migrate_transaction_times">Мигрировать времена транзакций</string>
 </resources>

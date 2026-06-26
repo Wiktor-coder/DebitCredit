@@ -1,4 +1,4 @@
-package ru.github.debitcredit
+package ru.github.debitcredit.presentation.ui
 
 import android.content.SharedPreferences
 import android.content.res.Configuration
@@ -9,8 +9,10 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.appbar.MaterialToolbar
+import dagger.hilt.android.AndroidEntryPoint
+import ru.github.debitcredit.R
 import java.util.Locale
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
