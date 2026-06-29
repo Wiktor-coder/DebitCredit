@@ -4,8 +4,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
-//    alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -38,14 +39,9 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
-
-// Добавляем параметры для Room KSP
-//ksp {
-//    arg("room.generateKotlin", "true")
-//    arg("room.incremental", "true")
-//}
 
 kotlin {
     compilerOptions {
@@ -86,6 +82,15 @@ dependencies {
 
     // Hilt Navigation
     implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
+
+    // Firebase - используем BOM для управления версиями
+    implementation(platform(libs.firebase.bom))
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    // WorkManager для фоновых задач
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
