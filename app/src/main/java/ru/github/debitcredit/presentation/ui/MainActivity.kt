@@ -1,13 +1,18 @@
 package ru.github.debitcredit.presentation.ui
 
+import android.Manifest
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.appbar.MaterialToolbar
@@ -21,8 +26,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var toolbar: MaterialToolbar
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("MainActivity", "Notification permission granted")
+        } else {
+            Log.d("MainActivity", "Notification permission denied")
+        }
+    }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
 
         val isDarkTheme = sharedPref.getBoolean("theme", false)
@@ -34,18 +48,24 @@ class MainActivity : AppCompatActivity() {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        // Язык - по умолчанию русский
         val languageCode = sharedPref.getString("language", "ru") ?: "ru"
         setAppLocale(languageCode)
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val navHostId = R.id.nav_host_fragment
-        Log.d("MainActivity", "nav_host_fragment ID: $navHostId")
+        // Запрашиваем разрешение на уведомления (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
 
-        // Инициализируем toolbar
-        toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
@@ -56,12 +76,10 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Настраиваем меню в Toolbar после инициализации
         setupToolbarMenu()
     }
 
     private fun setupToolbarMenu() {
-        // Создаем меню через стандартный способ
         toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_settings -> {
@@ -71,12 +89,10 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
-        // Принудительно обновляем меню
         invalidateOptionsMenu()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Инфлейтим меню через стандартный метод
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
     }
