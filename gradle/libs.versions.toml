@@ -3,7 +3,6 @@ agp = "8.13.2"
 kotlin = "2.0.21"
 coreKtx = "1.18.0"
 junit = "4.13.2"
-junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.14.0"
@@ -15,11 +14,17 @@ lifecycle = "2.10.0"
 room = "2.8.4"
 hilt = "2.51.1"
 firebaseBom = "33.2.0"
+# Test
+coroutinesTest = "1.7.3"
+androidxTest = "1.7.0"
+androidxTestExt = "1.3.0"
+espressoContrib = "3.7.0"
+turbine = "1.2.1"
+archTesting = "2.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -37,6 +42,15 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 
 # Firebase
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+
+# Тестирование
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTest" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidxTest" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExt" }
+espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archTesting" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
