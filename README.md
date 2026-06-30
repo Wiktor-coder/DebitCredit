@@ -112,7 +112,7 @@ note TEXT DEFAULT
 
 Проект развивается исключительно на энтузиазме в свободное время. Любая сумма поможет оплачивать серверы и уделять коду больше времени. Благодарен за любую поддежку проекта.
 
-Поддержать по ссылке: ![[CloudTips](https://pay.cloudtips.ru/p/29e9b5ab)](https://pay.cloudtips.ru/p/29e9b5ab)
+Поддержать по ссылке: [[CloudTips](https://pay.cloudtips.ru/p/29e9b5ab)](https://pay.cloudtips.ru/p/29e9b5ab)
 
 Поддержать по QR-code:
 ![QR-code](screenshots/qr-code.png)
