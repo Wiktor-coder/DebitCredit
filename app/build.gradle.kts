@@ -94,9 +94,6 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.gson)
 
-    implementation(libs.play.services.base)
-    implementation(libs.play.services.auth)
-
     // Unit тесты
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
