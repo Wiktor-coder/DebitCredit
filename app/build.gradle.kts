@@ -64,59 +64,53 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
 
-    // RecyclerView для списка категорий
     implementation(libs.androidx.recyclerview)
-
-    // CardView для карточек категорий
     implementation(libs.androidx.cardview)
 
-    // ViewModel и LiveData
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
 
-    // Navigation Component
-    implementation("androidx.navigation:navigation-fragment-ktx:2.8.7")
-    implementation("androidx.navigation:navigation-ui-ktx:2.8.7")
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
 
-    // Room dependencies
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     kapt(libs.androidx.room.compiler)
-//    ksp(libs.androidx.room.compiler)
 
-    // Hilt
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    kapt("com.google.dagger:hilt-compiler:2.51.1")
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 
-    // Hilt Navigation
-    implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
+    // Правильная ссылка на Hilt Navigation
+    implementation(libs.androidx.hilt.navigation.fragment)
 
-    // Firebase - используем BOM для управления версиями
     implementation(platform(libs.firebase.bom))
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-crashlytics-ktx")
-    // WorkManager для фоновых задач
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation(libs.firebase.analytics.ktx)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.crashlytics.ktx)
 
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.androidx.work.runtime.ktx)
+
+    implementation(libs.okhttp)
+    implementation(libs.gson)
+
+    implementation(libs.play.services.base)
+    implementation(libs.play.services.auth)
 
     // Unit тесты
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.arch.core.testing)
     testImplementation(libs.turbine)
-    testImplementation("io.mockk:mockk:1.13.12")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:2.0.21")
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlin.test)
 
     // Android тесты
     androidTestImplementation(libs.androidx.espresso.core)
 
     // Для Hilt тестов
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
-    kaptAndroidTest("com.google.dagger:hilt-compiler:2.51.1")
+    androidTestImplementation(libs.hilt.android.testing)
+    kaptAndroidTest(libs.hilt.compiler)
 }
 
 // Для Hilt

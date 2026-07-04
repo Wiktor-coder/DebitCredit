@@ -20,14 +20,11 @@ class DebitCreditApplication : Application() {
         super.onCreate()
 
         try {
-            // Инициализируем Firebase
             FirebaseApp.initializeApp(this)
-            Log.d("Application", "Firebase initialized")
 
-            // Настраиваем Firestore для офлайн-режима
             setupFirestore()
 
-            // Запускаем ежедневное уведомление в 8:00
+            // Запускаем ежедневное уведомление через WorkManager
             NotificationScheduler.scheduleDailyNotification(this)
 
             // Проверяем обновления в фоновом потоке
@@ -39,9 +36,8 @@ class DebitCreditApplication : Application() {
                 }
             }
 
-            // Показываем благодарственное уведомление (с задержкой)
             CoroutineScope(Dispatchers.IO).launch {
-                kotlinx.coroutines.delay(5000) // Задержка 3 секунды
+                kotlinx.coroutines.delay(5000)
                 NotificationHelper.showAppreciationNotification(this@DebitCreditApplication)
             }
 
@@ -55,11 +51,10 @@ class DebitCreditApplication : Application() {
         try {
             val firestore = FirebaseFirestore.getInstance()
             val settings = FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)  // Включаем офлайн-режим
+                .setPersistenceEnabled(true)
                 .setCacheSizeBytes(FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)
                 .build()
             firestore.firestoreSettings = settings
-            Log.d("Application", "Firestore configured with offline persistence")
         } catch (e: Exception) {
             Log.e("Application", "Error configuring Firestore", e)
         }

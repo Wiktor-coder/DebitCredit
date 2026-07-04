@@ -134,9 +134,9 @@ class MainFragment : Fragment() {
 
     private fun updateBalance(balance: Float) {
         val balanceText = if (balance >= 0) {
-            "${getString(R.string.balance)}: +${getString(R.string.amount_format, balance)} ₽"
+            "${getString(R.string.balance)}: +${getString(R.string.amount_format, balance)}"
         } else {
-            "${getString(R.string.balance)}: ${getString(R.string.amount_format, balance)} ₽"
+            "${getString(R.string.balance)}: ${getString(R.string.amount_format, balance)}"
         }
         balanceTextView.text = balanceText
     }

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -76,12 +77,26 @@ class CategoryEditFragment : Fragment() {
         setupTextWatcher()
         setupClickListeners(view)
         setupKeyboardListeners()
+
+        // Показываем клавиатуру при входе во фрагмент
+        showKeyboard()
     }
 
     private fun setupViews(view: View) {
         amountEditText = view.findViewById(R.id.amountEditText)
         amountEditText.setText("")
         amountEditText.hint = getString(R.string.add_amount)
+
+        // Обработка клика по полю ввода - переключаем клавиатуру
+        amountEditText.setOnClickListener {
+            // Если клавиатура скрыта - показываем, если показана - скрываем
+            val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+            if (imm.isActive) {
+                hideKeyboard()
+            } else {
+                showKeyboard()
+            }
+        }
 
         val iconContainer = view.findViewById<View>(R.id.iconContainer)
         val categoryIcon = view.findViewById<ImageView>(R.id.categoryIcon)
@@ -124,18 +139,26 @@ class CategoryEditFragment : Fragment() {
     }
 
     private fun setupKeyboardListeners() {
+        // Обработка нажатия Done на клавиатуре
         amountEditText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 hideKeyboard()
                 true
             } else false
         }
-        amountEditText.requestFocus()
-        showKeyboard()
+
+        // Следим за фокусом
+        amountEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                // Если поле получило фокус, показываем клавиатуру
+                showKeyboard()
+            }
+        }
     }
 
     private fun setupClickListeners(view: View) {
         view.findViewById<ImageButton>(R.id.cancelButton).setOnClickListener {
+            hideKeyboard()
             findNavController().popBackStack()
         }
 
@@ -160,12 +183,12 @@ class CategoryEditFragment : Fragment() {
                             R.string.amount_format,
                             newAmount
                         )
-                    } ₽",
+                    }",
                     Toast.LENGTH_SHORT
                 ).show()
+                hideKeyboard()
                 findNavController().popBackStack()
             } else {
-                // Передаем контекст через ViewModel
                 viewModel.addTransaction(categoryKey, newAmount, "expense")
 
                 val updatedAmount = originalAmount + newAmount
@@ -182,31 +205,40 @@ class CategoryEditFragment : Fragment() {
                             R.string.amount_format,
                             newAmount
                         )
-                    } ₽\n${getString(R.string.new_amount)}: ${
+                    } \n${getString(R.string.new_amount)}: ${
                         context?.getString(
                             R.string.amount_format,
                             updatedAmount
                         )
-                    } ₽",
+                    }",
                     Toast.LENGTH_LONG
                 ).show()
+                hideKeyboard()
                 findNavController().popBackStack()
             }
         }
     }
 
     private fun showKeyboard() {
-        val imm =
-            requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        amountEditText.post {
-            imm.showSoftInput(amountEditText, 0)
+        try {
+            val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+            amountEditText.post {
+                amountEditText.requestFocus()
+                imm.showSoftInput(amountEditText, InputMethodManager.SHOW_IMPLICIT)
+            }
+        } catch (e: Exception) {
+            Log.e("CategoryEditFragment", "Error showing keyboard", e)
         }
     }
 
     private fun hideKeyboard() {
-        val imm =
-            requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(amountEditText.windowToken, 0)
+        try {
+            val imm = requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(amountEditText.windowToken, 0)
+            amountEditText.clearFocus()
+        } catch (e: Exception) {
+            Log.e("CategoryEditFragment", "Error hiding keyboard", e)
+        }
     }
 
     override fun onDestroyView() {
