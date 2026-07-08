@@ -33,6 +33,8 @@
     <string name="health">Здоровье</string>
     <string name="clothing">Одежда</string>
     <string name="entertainment">Развлечения</string>
+    <string name="loan">Кредит</string>
+    <string name="deposit">Вклады</string>
     <string name="other">Иное</string>
     <string name="current_amount">Текущая сумма: %.2f ₽</string>
     <string name="add_income">Добавить доход</string>

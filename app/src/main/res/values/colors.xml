@@ -25,4 +25,10 @@
     <color name="chart_background_dark">#2D2D44</color>
     <color name="chart_grid_light">#CCCCCC</color>
     <color name="chart_grid_dark">#555555</color>
+
+    <color name="expense_color">#f21d05</color>
+    <color name="income_color">#4ECDC4</color>
+    <color name="chart_grid_color">#E0E0E0</color>
+    <color name="scroll_bar_color">#CCCCCC</color>
+    <color name="scroll_indicator_color">#DAA520</color>
 </resources>

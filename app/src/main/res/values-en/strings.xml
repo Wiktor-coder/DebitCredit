@@ -33,6 +33,8 @@
     <string name="health">Health</string>
     <string name="clothing">Clothing</string>
     <string name="entertainment">Entertainment</string>
+    <string name="loan">Loan</string>
+    <string name="deposit">Deposits</string>
     <string name="other">Other</string>
     <string name="current_amount">Current amount: %.2f ₽</string>
     <string name="percent_format">%.1f%%</string>

@@ -8,7 +8,8 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import androidx.core.graphics.toColorInt
+import androidx.core.content.ContextCompat
+import ru.github.debitcredit.R
 import java.util.Locale
 import kotlin.math.max
 
@@ -18,6 +19,12 @@ class CustomBarChart @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
+    private val expenseColor = ContextCompat.getColor(context, R.color.expense_color)
+    private val incomeColor = ContextCompat.getColor(context, R.color.income_color)
+    private val gridColor = ContextCompat.getColor(context, R.color.chart_grid_color)
+    private val scrollBarColor = ContextCompat.getColor(context, R.color.scroll_bar_color)
+    private val scrollIndicatorColor = ContextCompat.getColor(context, R.color.scroll_indicator_color)
+
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
@@ -25,7 +32,7 @@ class CustomBarChart @JvmOverloads constructor(
         color = Color.BLACK
     }
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = "#E0E0E0".toColorInt()
+        color = gridColor  // "#E0E0E0".toColorInt()
         strokeWidth = 1f
         style = Paint.Style.STROKE
     }
@@ -139,7 +146,7 @@ class CustomBarChart @JvmOverloads constructor(
 
             // Расход (красный)
             val expenseHeight = if (maxValue > 0) (item.expense / maxValue) * chartHeight else 0f
-            paint.color = "#FF6B6B".toColorInt()
+            paint.color = expenseColor  // "#FF6B6B".toColorInt()
             paint.style = Paint.Style.FILL
             canvas.drawRect(
                 x,
@@ -152,7 +159,7 @@ class CustomBarChart @JvmOverloads constructor(
             // Добавляем значение над столбцом расхода
             if (item.expense > 0) {
                 textPaint.textSize = 20f
-                textPaint.color = "#FF6B6B".toColorInt()
+                textPaint.color = expenseColor  // "#FF6B6B".toColorInt()
                 textPaint.textAlign = Paint.Align.CENTER
                 canvas.drawText(
                     String.format(Locale.US,"%.0f", item.expense),
@@ -164,7 +171,7 @@ class CustomBarChart @JvmOverloads constructor(
 
             // Доход (зеленый)
             val incomeHeight = if (maxValue > 0) (item.income / maxValue) * chartHeight else 0f
-            paint.color = "#4ECDC4".toColorInt()
+            paint.color = incomeColor  // "#4ECDC4".toColorInt()
             canvas.drawRect(
                 x + barWidth + gap,
                 paddingTop + chartHeight - incomeHeight,
@@ -176,7 +183,7 @@ class CustomBarChart @JvmOverloads constructor(
             // Добавляем значение над столбцом дохода
             if (item.income > 0) {
                 textPaint.textSize = 20f
-                textPaint.color = "#4ECDC4".toColorInt()
+                textPaint.color = incomeColor  // "#4ECDC4".toColorInt()
                 textPaint.textAlign = Paint.Align.CENTER
                 canvas.drawText(
                     String.format(Locale.US,"%.0f", item.income),
@@ -201,7 +208,7 @@ class CustomBarChart @JvmOverloads constructor(
     }
     @Suppress("SameParameterValue")
     private fun drawGrid(canvas: Canvas, paddingTop: Float, chartHeight: Float) {
-        gridPaint.color = "#E0E0E0".toColorInt()
+        gridPaint.color = gridColor  // "#E0E0E0".toColorInt()
         gridPaint.style = Paint.Style.STROKE
         gridPaint.strokeWidth = 1f
 
@@ -236,12 +243,12 @@ class CustomBarChart @JvmOverloads constructor(
         val barY = height - 20f
 
         // Полоса прокрутки
-        paint.color = "#CCCCCC".toColorInt()
+        paint.color = scrollBarColor  // "#CCCCCC".toColorInt()
         paint.style = Paint.Style.FILL
         canvas.drawRoundRect(barX, barY, barX + barWidth, barY + 6f, 3f, 3f, paint)
 
         // Индикатор положения
-        paint.color = "#DAA520".toColorInt()
+        paint.color =  scrollIndicatorColor // "#DAA520".toColorInt()
         val indicatorWidth = barWidth / (data.size / maxVisibleItems.toFloat() + 1)
         val indicatorX = barX + progress * (barWidth - indicatorWidth)
         canvas.drawRoundRect(indicatorX, barY, indicatorX + indicatorWidth, barY + 6f, 3f, 3f, paint)

@@ -20,6 +20,18 @@ object NotificationHelper {
     private const val NOTIFICATION_ID = 2001
 
     fun showAppreciationNotification(context: Context) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                // Разрешение не дано - не показываем
+                return
+            }
+        }
+
         // Проверяем, было ли уже показано уведомление сегодня
         val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         val lastNotificationDate = prefs.getString("last_appreciation_notification", "")

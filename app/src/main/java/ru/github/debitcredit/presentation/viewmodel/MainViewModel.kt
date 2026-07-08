@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import ru.github.debitcredit.data.model.CategoryEntity
 import ru.github.debitcredit.data.model.TransactionEntity
+import ru.github.debitcredit.domain.model.Category
 import ru.github.debitcredit.domain.repository.ITransactionRepository
 import ru.github.debitcredit.domain.usecase.category.AddCategoryUseCase
 import ru.github.debitcredit.domain.usecase.category.DeleteCategoryUseCase
@@ -31,7 +31,7 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     data class MainUiData(
-        val categories: List<CategoryEntity>,
+        val categories: List<Category>,
         val balance: Float,
         val totalIncome: Float,
         val totalExpenses: Float
@@ -40,8 +40,8 @@ class MainViewModel @Inject constructor(
     private val _uiState = MutableLiveData<UiState<MainUiData>>(UiState.Loading)
     val uiState: LiveData<UiState<MainUiData>> = _uiState
 
-    private val _categories = MutableLiveData<List<CategoryEntity>>(emptyList())
-    val categories: LiveData<List<CategoryEntity>> = _categories
+    private val _categories = MutableLiveData<List<Category>>(emptyList())
+    val categories: LiveData<List<Category>> = _categories
 
     private val _transactions = MutableLiveData<List<TransactionEntity>>(emptyList())
     val transactions: LiveData<List<TransactionEntity>> = _transactions
@@ -85,7 +85,6 @@ class MainViewModel @Inject constructor(
                     }
                     .launchIn(this)
             } catch (e: Exception) {
-                // Обработка ошибки
                 e.stackTrace
             }
         }
@@ -96,12 +95,11 @@ class MainViewModel @Inject constructor(
         loadTransactions()
     }
 
-    fun addCategory(category: CategoryEntity) {
+    fun addCategory(category: Category) {
         viewModelScope.launch {
             try {
                 addCategoryUseCase(category)
             } catch (e: Exception) {
-                // Обработка ошибки
                 e.stackTrace
             }
         }
@@ -112,7 +110,6 @@ class MainViewModel @Inject constructor(
             try {
                 deleteCategoryUseCase(categoryId, categoryName)
             } catch (e: Exception) {
-                // Обработка ошибки
                 e.stackTrace
             }
         }
@@ -124,7 +121,6 @@ class MainViewModel @Inject constructor(
                 addTransactionUseCase(categoryName, amount, type)
                 loadTransactions()
             } catch (e: Exception) {
-                // Обработка ошибки
                 e.stackTrace
             }
         }
@@ -140,7 +136,6 @@ class MainViewModel @Inject constructor(
                     try {
                         addCategoryUseCase(updatedCategory)
                     } catch (e: Exception) {
-                        // Обработка ошибки
                         e.stackTrace
                     }
                 }
