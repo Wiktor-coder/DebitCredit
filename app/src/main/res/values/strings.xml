@@ -80,7 +80,7 @@
     <string name="this_week">Эта неделя</string>
     <string name="this_month">Этот месяц</string>
     <string name="this_year">Этот год</string>
-    <string name="transaction_details">%s: %.2f ₽</string>
+    <string name="transaction_details" formatted="false">%s: %.2f ₽</string>
     <string name="income_category">Доход</string>
     <string name="date">Дата</string>
     <string name="category">Категория</string>
