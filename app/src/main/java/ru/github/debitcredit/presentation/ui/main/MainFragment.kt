@@ -33,6 +33,7 @@ class MainFragment : Fragment() {
     private lateinit var statsView: StatsView
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var transactionsButton: ImageButton
     private lateinit var addCategoryButton: ImageButton
     private lateinit var incomeButton: ImageButton
     private lateinit var balanceTextView: TextView
@@ -84,6 +85,9 @@ class MainFragment : Fragment() {
     private fun initializeViews(view: View) {
         statsView = view.findViewById(R.id.statsView)
         categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView)
+
+        // Инициализируем все кнопки
+        transactionsButton = view.findViewById(R.id.transactionsButton)
         addCategoryButton = view.findViewById(R.id.addCategoryButton)
         incomeButton = view.findViewById(R.id.incomeButton)
         balanceTextView = view.findViewById(R.id.balanceTextView)
@@ -94,7 +98,6 @@ class MainFragment : Fragment() {
         categoryAdapter = CategoryAdapter(
             context = requireContext(),
             onItemClick = { categoryEntity: CategoryEntity ->
-                // Конвертируем CategoryEntity в Domain Category
                 val category = Category(
                     id = categoryEntity.id,
                     name = categoryEntity.name,
@@ -106,7 +109,6 @@ class MainFragment : Fragment() {
                 navigateToEditCategory(category)
             },
             onDeleteClick = { categoryEntity: CategoryEntity ->
-                // Конвертируем CategoryEntity в Domain Category
                 val category = Category(
                     id = categoryEntity.id,
                     name = categoryEntity.name,
@@ -118,7 +120,6 @@ class MainFragment : Fragment() {
                 showDeleteConfirmationDialog(category)
             },
             onAddClick = { categoryEntity: CategoryEntity ->
-                // Конвертируем CategoryEntity в Domain Category
                 val category = Category(
                     id = categoryEntity.id,
                     name = categoryEntity.name,
@@ -152,7 +153,6 @@ class MainFragment : Fragment() {
                     // Показать прогресс
                 }
                 is UiState.Success -> {
-                    // Конвертируем Domain Category в CategoryEntity для адаптера
                     val categories = state.data.categories.map { category ->
                         CategoryEntity(
                             id = category.id,
@@ -239,10 +239,12 @@ class MainFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        addCategoryButton.setOnClickListener {
-            findNavController().navigate(R.id.selectCategoryFragment)
+        // Кнопка "Все транзакции"
+        transactionsButton.setOnClickListener {
+            findNavController().navigate(R.id.transactionsFragment)
         }
 
+        // Кнопка "Доход"
         incomeButton.setOnClickListener {
             val bundle = Bundle().apply {
                 putBoolean("is_income_mode", true)
@@ -253,6 +255,11 @@ class MainFragment : Fragment() {
                 putInt("category_id", 0)
             }
             findNavController().navigate(R.id.categoryEditFragment, bundle)
+        }
+
+        // Кнопка "Добавить категорию"
+        addCategoryButton.setOnClickListener {
+            findNavController().navigate(R.id.selectCategoryFragment)
         }
     }
 

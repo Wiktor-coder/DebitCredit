@@ -49,23 +49,8 @@ object CategoryMapper {
 
     fun getIconRes(key: String): Int = iconMap[key] ?: android.R.drawable.ic_menu_edit
 
-//    fun getColor(key: String): Int = colorMap[key]?.toColorInt() ?: "#78909C".toColorInt()
-//
-//    fun getPredefinedCategories(): List<CategoryEntity> {
-//        return categoryNameMap.keys.filter { it != "income" }.map { key ->
-//            CategoryEntity(
-//                id = 0,
-//                name = key,
-//                amount = 0f,
-//                color = getColor(key),
-//                iconRes = getIconRes(key)
-//            )
-//        }
-//    }
-//
-//    fun getCategoryDisplayName(context: Context, category: CategoryEntity): String {
-//        return getLocalizedName(context, category.name)
-//    }
-//
-//    fun getAllCategoryKeys(): List<String> = categoryNameMap.keys.toList()
+    // Метод для получения всех ключей категорий
+    fun getAllCategoryKeys(): List<String> {
+        return categoryNameMap.keys.toList()
+    }
 }

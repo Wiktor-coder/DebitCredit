@@ -78,6 +78,17 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageButton
+            android:id="@+id/addCategoryButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginHorizontal="24dp"
+            android:src="@android:drawable/ic_input_add"
+            android:background="@drawable/circle_background"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            android:contentDescription="@string/add_category"/>
+
+        <ImageButton
             android:id="@+id/incomeButton"
             android:layout_width="56dp"
             android:layout_height="56dp"
@@ -89,15 +100,16 @@
             android:contentDescription="@string/income"/>
 
         <ImageButton
-            android:id="@+id/addCategoryButton"
+            android:id="@+id/transactionsButton"
             android:layout_width="56dp"
             android:layout_height="56dp"
-            android:layout_marginHorizontal="24dp"
-            android:src="@android:drawable/ic_input_add"
+            android:layout_marginHorizontal="16dp"
+            android:src="@drawable/ic_empty_transactions"
             android:background="@drawable/circle_background"
             android:scaleType="centerInside"
             android:padding="12dp"
-            android:contentDescription="@string/add_category"/>
+            app:tint="?android:attr/textColorPrimary"
+            android:contentDescription="@string/transactions" />
 
     </LinearLayout>
 

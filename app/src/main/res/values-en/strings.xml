@@ -72,6 +72,19 @@
     <string name="incomes">Incomes</string>
     <string name="no_data">No data</string>
 
+    <!-- Экран транзакций -->
+    <string name="transactions">All transactions</string>
+    <string name="search_hint">Search by amount or category</string>
+    <string name="no_transactions">No transactions</string>
+    <string name="all_categories">All categories</string>
+    <string name="all_dates">All dates</string>
+    <string name="today">Today</string>
+    <string name="this_week">This week</string>
+    <string name="this_month">This month</string>
+    <string name="this_year">This year</string>
+    <string name="transaction_details">%s: %.2f ₽</string>
+    <string name="income_category">Income</string>
+
     <!-- About -->
     <string name="app_description">DebitCredit\nVersion 1.0\n\nApp for income and expense tracking</string>
 </resources>
