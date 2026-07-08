@@ -82,8 +82,9 @@
     <string name="this_week">This week</string>
     <string name="this_month">This month</string>
     <string name="this_year">This year</string>
-    <string name="transaction_details">%s: %.2f ₽</string>
+    <string name="transaction_details" formatted="false">%s: %.2f ₽</string>
     <string name="income_category">Income</string>
+    <string name="date">Date</string>
 
     <!-- About -->
     <string name="app_description">DebitCredit\nVersion 1.0\n\nApp for income and expense tracking</string>
