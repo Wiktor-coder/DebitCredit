@@ -6,9 +6,10 @@
 
 ## 📱 Скриншоты
 
-| Главный экран | Статистика | Настройки |
-|--------------|------------|-----------|
-| ![Главный](screenshots/main_screen.png) | ![Статистика](screenshots/statistics.png) | ![Настройки](screenshots/settings.png) |
+| Главный экран | Статистика | Настройки | Поиск и фильтры |
+|--------------|------------|-----------|-----------------|
+| ![Главный](screenshots/main_screen.png) | ![Статистика](screenshots/statistics.png) | ![Настройки](screenshots/settings.png) | ![Список транзакций](screenshots/search.png
+) |
 
 ## ✨ Особенности
 
