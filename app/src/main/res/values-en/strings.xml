@@ -72,7 +72,7 @@
     <string name="incomes">Incomes</string>
     <string name="no_data">No data</string>
 
-    <!-- Экран транзакций -->
+    <!-- Transactions screen -->
     <string name="transactions">All transactions</string>
     <string name="search_hint">Search by amount or category</string>
     <string name="no_transactions">No transactions</string>
@@ -85,6 +85,13 @@
     <string name="transaction_details" formatted="false">%s: %.2f ₽</string>
     <string name="income_category">Income</string>
     <string name="date">Date</string>
+
+    <!-- Transaction count -->
+    <plurals name="transactions_count">
+        <item quantity="zero">No transactions</item>
+        <item quantity="one">%d transaction</item>
+        <item quantity="other">%d transactions</item>
+    </plurals>
 
     <!-- About -->
     <string name="app_description">DebitCredit\nVersion 1.0\n\nApp for income and expense tracking</string>
