@@ -12,7 +12,9 @@ object CategoryMapper {
         "clothing" to R.string.clothing,
         "entertainment" to R.string.entertainment,
         "other" to R.string.other,
-        "income" to R.string.income
+        "income" to R.string.income,
+        "loan" to R.string.loan,
+        "deposit" to R.string.deposit,
     )
 
     private val iconMap = mapOf(
@@ -23,7 +25,9 @@ object CategoryMapper {
         "clothing" to R.drawable.ic_clothes,
         "entertainment" to R.drawable.ic_amusement,
         "other" to R.drawable.ic_yin_yang,
-        "income" to R.drawable.ic_ruble
+        "income" to R.drawable.ic_ruble,
+        "loan" to R.drawable.ic_loan,
+        "deposit" to R.drawable.ic_deposit,
     )
 
 //    private val colorMap = mapOf(
@@ -34,7 +38,9 @@ object CategoryMapper {
 //        "clothing" to "#9C27B0",      // Фиолетовый
 //        "entertainment" to "#081fa1", // Синий
 //        "other" to "#52636b",         // Серый
-//        "income" to "#16f0e0"         // Бирюзовый
+//        "income" to "#16f0e0",        // Бирюзовый
+//        "loan" to "#ed480c",          // Кредит - оранжевый
+//        "deposit" to "#30a3ba"        // Вклады - голубой
 //    )
 
     fun getLocalizedName(context: Context, key: String): String {
@@ -43,23 +49,8 @@ object CategoryMapper {
 
     fun getIconRes(key: String): Int = iconMap[key] ?: android.R.drawable.ic_menu_edit
 
-//    fun getColor(key: String): Int = colorMap[key]?.toColorInt() ?: "#78909C".toColorInt()
-//
-//    fun getPredefinedCategories(): List<CategoryEntity> {
-//        return categoryNameMap.keys.filter { it != "income" }.map { key ->
-//            CategoryEntity(
-//                id = 0,
-//                name = key,
-//                amount = 0f,
-//                color = getColor(key),
-//                iconRes = getIconRes(key)
-//            )
-//        }
-//    }
-//
-//    fun getCategoryDisplayName(context: Context, category: CategoryEntity): String {
-//        return getLocalizedName(context, category.name)
-//    }
-//
-//    fun getAllCategoryKeys(): List<String> = categoryNameMap.keys.toList()
+    // Метод для получения всех ключей категорий
+    fun getAllCategoryKeys(): List<String> {
+        return categoryNameMap.keys.toList()
+    }
 }

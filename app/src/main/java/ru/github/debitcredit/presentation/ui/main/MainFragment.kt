@@ -2,9 +2,6 @@ package ru.github.debitcredit.presentation.ui.main
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -18,11 +15,12 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
 import ru.github.debitcredit.R
 import ru.github.debitcredit.customview.StatsView
 import ru.github.debitcredit.data.model.CategoryEntity
+import ru.github.debitcredit.databinding.FragmentMainBinding
+import ru.github.debitcredit.domain.model.Category
 import ru.github.debitcredit.presentation.adapter.CategoryAdapter
 import ru.github.debitcredit.presentation.state.UiState
 import ru.github.debitcredit.presentation.viewmodel.MainViewModel
@@ -35,16 +33,25 @@ class MainFragment : Fragment() {
     private lateinit var statsView: StatsView
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var transactionsButton: ImageButton
     private lateinit var addCategoryButton: ImageButton
     private lateinit var incomeButton: ImageButton
     private lateinit var balanceTextView: TextView
+    private var _binding: FragmentMainBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_main, container, false)
+    ): View {
+        _binding = FragmentMainBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -78,6 +85,9 @@ class MainFragment : Fragment() {
     private fun initializeViews(view: View) {
         statsView = view.findViewById(R.id.statsView)
         categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView)
+
+        // Инициализируем все кнопки
+        transactionsButton = view.findViewById(R.id.transactionsButton)
         addCategoryButton = view.findViewById(R.id.addCategoryButton)
         incomeButton = view.findViewById(R.id.incomeButton)
         balanceTextView = view.findViewById(R.id.balanceTextView)
@@ -87,13 +97,37 @@ class MainFragment : Fragment() {
 
         categoryAdapter = CategoryAdapter(
             context = requireContext(),
-            onItemClick = { category ->
+            onItemClick = { categoryEntity: CategoryEntity ->
+                val category = Category(
+                    id = categoryEntity.id,
+                    name = categoryEntity.name,
+                    amount = categoryEntity.amount,
+                    color = categoryEntity.color,
+                    iconRes = categoryEntity.iconRes,
+                    date = categoryEntity.date
+                )
                 navigateToEditCategory(category)
             },
-            onDeleteClick = { category ->
+            onDeleteClick = { categoryEntity: CategoryEntity ->
+                val category = Category(
+                    id = categoryEntity.id,
+                    name = categoryEntity.name,
+                    amount = categoryEntity.amount,
+                    color = categoryEntity.color,
+                    iconRes = categoryEntity.iconRes,
+                    date = categoryEntity.date
+                )
                 showDeleteConfirmationDialog(category)
             },
-            onAddClick = { category ->
+            onAddClick = { categoryEntity: CategoryEntity ->
+                val category = Category(
+                    id = categoryEntity.id,
+                    name = categoryEntity.name,
+                    amount = categoryEntity.amount,
+                    color = categoryEntity.color,
+                    iconRes = categoryEntity.iconRes,
+                    date = categoryEntity.date
+                )
                 navigateToEditCategory(category)
             }
         )
@@ -101,7 +135,7 @@ class MainFragment : Fragment() {
         categoryRecyclerView.adapter = categoryAdapter
     }
 
-    private fun navigateToEditCategory(category: CategoryEntity) {
+    private fun navigateToEditCategory(category: Category) {
         val bundle = Bundle().apply {
             putString("category_name", category.name)
             putInt("category_id", category.id)
@@ -118,13 +152,21 @@ class MainFragment : Fragment() {
                 is UiState.Loading -> {
                     // Показать прогресс
                 }
-
                 is UiState.Success -> {
-                    categoryAdapter.submitList(state.data.categories)
+                    val categories = state.data.categories.map { category ->
+                        CategoryEntity(
+                            id = category.id,
+                            name = category.name,
+                            amount = category.amount,
+                            color = category.color,
+                            iconRes = category.iconRes,
+                            date = category.date
+                        )
+                    }
+                    categoryAdapter.submitList(categories)
                     updateStatsView(state.data.categories)
                     updateBalance(state.data.balance)
                 }
-
                 is UiState.Error -> {
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
                 }
@@ -141,7 +183,7 @@ class MainFragment : Fragment() {
         balanceTextView.text = balanceText
     }
 
-    private fun updateStatsView(categories: List<CategoryEntity>) {
+    private fun updateStatsView(categories: List<Category>) {
         val positiveCategories = categories.filter { it.amount > 0 }
 
         val statsData = if (positiveCategories.isNotEmpty()) {
@@ -167,7 +209,7 @@ class MainFragment : Fragment() {
         statsView.data = statsData
     }
 
-    private fun showDeleteConfirmationDialog(category: CategoryEntity) {
+    private fun showDeleteConfirmationDialog(category: Category) {
         val displayName = CategoryMapper.getLocalizedName(requireContext(), category.name)
 
         AlertDialog.Builder(requireContext())
@@ -197,10 +239,12 @@ class MainFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        addCategoryButton.setOnClickListener {
-            findNavController().navigate(R.id.selectCategoryFragment)
+        // Кнопка "Все транзакции"
+        transactionsButton.setOnClickListener {
+            findNavController().navigate(R.id.transactionsFragment)
         }
 
+        // Кнопка "Доход"
         incomeButton.setOnClickListener {
             val bundle = Bundle().apply {
                 putBoolean("is_income_mode", true)
@@ -211,6 +255,11 @@ class MainFragment : Fragment() {
                 putInt("category_id", 0)
             }
             findNavController().navigate(R.id.categoryEditFragment, bundle)
+        }
+
+        // Кнопка "Добавить категорию"
+        addCategoryButton.setOnClickListener {
+            findNavController().navigate(R.id.selectCategoryFragment)
         }
     }
 

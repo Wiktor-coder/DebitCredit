@@ -74,4 +74,19 @@
         <item name="android:paddingRight">8dp</item>
         <item name="cornerRadius">20dp</item>
     </style>
+
+    <!-- Стиль для Exposed Dropdown Menu -->
+    <style name="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/teal_400</item>
+        <item name="hintTextColor">@color/teal_400</item>
+        <item name="boxBackgroundColor">?attr/colorSurface</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+    </style>
+
+    <style name="RippleTeal" parent="Widget.Material3.Button">
+        <item name="android:colorControlHighlight">@color/teal_400</item>
+    </style>
 </resources>

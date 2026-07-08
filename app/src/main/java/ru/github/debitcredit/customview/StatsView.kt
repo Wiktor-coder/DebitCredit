@@ -26,6 +26,11 @@ class StatsView @JvmOverloads constructor(
     private var progress = 0f
     private var valueAnimator: ValueAnimator? = null
     private var currentRotation = 0f
+    // Кэшируем градиент для оптимизации
+    private var cachedShader: SweepGradient? = null
+    private var cachedColors: IntArray? = null
+    private var cachedCenterX = 0f
+    private var cachedCenterY = 0f
 
     var showPercentage = false
 
@@ -56,6 +61,9 @@ class StatsView @JvmOverloads constructor(
     var data: List<CategoryData> = emptyList()
         set(value) {
             field = value
+            // Сбрасываем кэш при изменении данных
+            cachedShader = null
+            cachedColors = null
             startAnimation()
         }
 
@@ -96,6 +104,9 @@ class StatsView @JvmOverloads constructor(
             center.x + radius,
             center.y + radius
         )
+        // Сбрасываем кэш при изменении размера
+        cachedShader = null
+        cachedColors = null
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -106,16 +117,31 @@ class StatsView @JvmOverloads constructor(
 
         var startAngle = -90f + currentRotation
 
-        // Рисуем сегменты
-        for ((_, category) in data.withIndex()) {
+        // Рисуем сегменты - используем обычный цикл for вместо forEach
+        for (i in 0 until data.size) {
+            val category = data[i]
             val sweepAngle = 360f * (category.amount / total) * progress
 
-            val shader = SweepGradient(
-                center.x, center.y,
-                intArrayOf(category.color, lightenColor(category.color)),
-                null
-            )
-            paint.shader = shader
+            // Кэшируем градиент
+            val colors = intArrayOf(category.color, lightenColor(category.color))
+
+            // Проверяем, нужно ли обновить кэш
+            if (cachedShader == null ||
+                cachedColors?.contentEquals(colors) != true ||
+                cachedCenterX != center.x ||
+                cachedCenterY != center.y) {
+
+                cachedShader = SweepGradient(
+                    center.x, center.y,
+                    colors,
+                    null
+                )
+                cachedColors = colors
+                cachedCenterX = center.x
+                cachedCenterY = center.y
+            }
+
+            paint.shader = cachedShader
             paint.color = category.color
 
             canvas.drawArc(oval, startAngle, sweepAngle, false, paint)

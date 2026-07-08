@@ -37,7 +37,7 @@ class DebitCreditApplication : Application() {
             }
 
             CoroutineScope(Dispatchers.IO).launch {
-                kotlinx.coroutines.delay(5000)
+//                kotlinx.coroutines.delay(3000)
                 NotificationHelper.showAppreciationNotification(this@DebitCreditApplication)
             }
 

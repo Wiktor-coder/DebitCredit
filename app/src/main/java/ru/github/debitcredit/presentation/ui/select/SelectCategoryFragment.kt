@@ -15,8 +15,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import ru.github.debitcredit.R
-import ru.github.debitcredit.presentation.adapter.SelectCategoryAdapter
 import ru.github.debitcredit.data.model.CategoryEntity
+import ru.github.debitcredit.domain.model.Category
+import ru.github.debitcredit.presentation.adapter.SelectCategoryAdapter
 import ru.github.debitcredit.presentation.viewmodel.MainViewModel
 import ru.github.debitcredit.utils.CategoryMapper
 
@@ -37,7 +38,7 @@ class SelectCategoryFragment : Fragment() {
     private lateinit var adapter: SelectCategoryAdapter
     private lateinit var backButton: ImageButton
 
-    private var existingCategories = mutableListOf<CategoryEntity>()
+    private var existingCategories = mutableListOf<Category>()
 
     private val predefinedCategories = listOf(
         PredefinedCategory("products", R.string.products, "#d91023"),
@@ -46,7 +47,9 @@ class SelectCategoryFragment : Fragment() {
         PredefinedCategory("health", R.string.health, "#18b51e"),
         PredefinedCategory("clothing", R.string.clothing, "#9C27B0"),
         PredefinedCategory("entertainment", R.string.entertainment, "#081fa1"),
-        PredefinedCategory("other", R.string.other, "#52636b")
+        PredefinedCategory("other", R.string.other, "#52636b"),
+        PredefinedCategory("loan", R.string.loan, "#ed480c"),
+        PredefinedCategory("deposit", R.string.deposit, "#30a3ba")
     )
 
     override fun onCreateView(
@@ -124,8 +127,10 @@ class SelectCategoryFragment : Fragment() {
         adapter.updateCategories(availableCategories)
 
         if (availableCategories.isEmpty()) {
-            Toast.makeText(requireContext(),
-                getString(R.string.no_categories), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.no_categories), Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -140,8 +145,10 @@ class SelectCategoryFragment : Fragment() {
 
         if (alreadyExists) {
             val displayName = getDisplayNameByKey(category.name)
-            Toast.makeText(requireContext(),
-                "$displayName ${getString(R.string.category_selected)}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "$displayName ${getString(R.string.category_selected)}", Toast.LENGTH_SHORT
+            ).show()
         } else {
             showAddCategoryDialog(category)
         }
@@ -169,7 +176,7 @@ class SelectCategoryFragment : Fragment() {
     }
 
     private fun addCategoryToMain(category: CategoryEntity) {
-        val newCategory = CategoryEntity(
+        val newCategory = Category(
             id = 0,
             name = category.name,
             amount = 0f,
@@ -179,8 +186,10 @@ class SelectCategoryFragment : Fragment() {
         viewModel.addCategory(newCategory)
 
         val displayName = getDisplayNameByKey(category.name)
-        Toast.makeText(requireContext(),
-            "${getString(R.string.category_added)}: $displayName", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            requireContext(),
+            "${getString(R.string.category_added)}: $displayName", Toast.LENGTH_SHORT
+        ).show()
 
         updateAvailableCategories()
     }
