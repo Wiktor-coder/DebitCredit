@@ -31,4 +31,21 @@
     <color name="chart_grid_color">#E0E0E0</color>
     <color name="scroll_bar_color">#CCCCCC</color>
     <color name="scroll_indicator_color">#DAA520</color>
+
+    <!-- Основные цвета -->
+    <color name="teal_400">#4ECDC4</color>
+    <color name="teal_600">#3BA89F</color>
+    <color name="teal_200">#7EDDD6</color>
+    <color name="teal_50">#E8F7F6</color>
+
+    <!-- Адаптивные цвета для Material 3 -->
+    <color name="md_theme_light_primary">#4ECDC4</color>
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#BFF5F0</color>
+    <color name="md_theme_light_onPrimaryContainer">#0C1F1D</color>
+
+    <color name="md_theme_dark_primary">#4ECDC4</color>
+    <color name="md_theme_dark_onPrimary">#FFFFFF</color>
+    <color name="md_theme_dark_primaryContainer">#1F4D47</color>
+    <color name="md_theme_dark_onPrimaryContainer">#BFF5F0</color>
 </resources>

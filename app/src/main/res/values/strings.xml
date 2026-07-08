@@ -39,7 +39,6 @@
     <string name="current_amount">Текущая сумма: %.2f ₽</string>
     <string name="add_income">Добавить доход</string>
     <string name="add_amount">Сумма для добавления</string>
-    <string name="category">Категория</string>
     <string name="category_selected">уже добавлена</string>
     <string name="rub">₽</string>
     <string name="add_category_question">Добавить категорию</string>
@@ -83,6 +82,17 @@
     <string name="this_year">Этот год</string>
     <string name="transaction_details">%s: %.2f ₽</string>
     <string name="income_category">Доход</string>
+    <string name="date">Дата</string>
+    <string name="category">Категория</string>
+
+    <!-- Для счётчика транзакций -->
+    <plurals name="transactions_count">
+        <item quantity="zero">Нет транзакций</item>
+        <item quantity="one">%d транзакция</item>
+        <item quantity="few">%d транзакции</item>
+        <item quantity="many">%d транзакций</item>
+        <item quantity="other">%d транзакций</item>
+    </plurals>
 
     <!-- О приложении -->
     <string name="app_description">DebitCredit\nВерсия 1.0\n\nПриложение для учёта доходов и расходов</string>

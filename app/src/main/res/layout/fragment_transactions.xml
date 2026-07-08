@@ -1,135 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="?attr/colorSurface">
 
-    <!-- Поисковая строка -->
-    <androidx.cardview.widget.CardView
+    <!-- Основной контент -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="12dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_above="@+id/backButtonContainer">
 
+        <!-- Поисковая строка -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            app:startIconDrawable="@android:drawable/ic_menu_search"
+            app:startIconTint="@color/teal_400"
+            app:endIconMode="clear_text"
+            app:endIconTint="@color/teal_400"
+            app:hintTextColor="@color/teal_400"
+            app:boxStrokeColor="@color/teal_400"
+            app:boxBackgroundColor="?attr/colorSurface">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/searchEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/search_hint"
+                android:inputType="text"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Контейнер для фильтров -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:weightSum="2">
 
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center_vertical"
-                android:src="@android:drawable/ic_menu_search"
-                app:tint="?attr/colorPrimary" />
+            <!-- Фильтр категорий -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/searchEditText"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category"
+                    android:textSize="12sp"
+                    android:textColor="@color/teal_400"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/categoryFilterSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/spinner_background"
+                    android:padding="12dp"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Фильтр по дате -->
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:background="@android:color/transparent"
-                android:hint="@string/search_by_amount"
-                android:inputType="numberDecimal"
-                android:maxLines="1" />
+                android:orientation="vertical">
 
-            <ImageButton
-                android:id="@+id/clearSearchButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center_vertical"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
-                android:background="@android:color/transparent"
-                android:visibility="gone" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/date"
+                    android:textSize="12sp"
+                    android:textColor="@color/teal_400"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/dateFilterSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/spinner_background"
+                    android:padding="12dp"
+                    android:textSize="14sp" />
+            </LinearLayout>
 
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
-    <!-- Фильтры -->
-    <LinearLayout
+        <!-- Счётчик транзакций -->
+        <TextView
+            android:id="@+id/transactionCountText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp"
+            android:text="0"
+            android:textSize="12sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textAlignment="textEnd" />
+
+        <!-- Список транзакций -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/transactionsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingHorizontal="12dp"
+            android:clipToPadding="false"
+            android:paddingBottom="0dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <!-- Пустое состояние -->
+        <LinearLayout
+            android:id="@+id/emptyStateLayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone"
+            android:padding="32dp">
+
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/ic_empty_transactions"
+                app:tint="@color/teal_400"
+                android:alpha="0.6" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/no_transactions"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/no_transactions"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textAlignment="center" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Контейнер для кнопки назад - всегда внизу -->
+    <RelativeLayout
+        android:id="@+id/backButtonContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
-        android:paddingBottom="8dp">
-
-        <!-- Фильтр по категории -->
-        <Spinner
-            android:id="@+id/categoryFilterSpinner"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/spinner_background"
-            android:padding="8dp" />
-
-        <!-- Фильтр по дате -->
-        <Spinner
-            android:id="@+id/dateFilterSpinner"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/spinner_background"
-            android:padding="8dp" />
-
-    </LinearLayout>
-
-    <!-- Список транзакций -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/transactionsRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingHorizontal="12dp"
-        android:clipToPadding="false"
-        android:paddingBottom="80dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-    <!-- Кнопка назад -->
-    <ImageButton
-        android:id="@+id/backButton"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_gravity="bottom|center_horizontal"
+        android:layout_alignParentBottom="true"
         android:layout_marginBottom="24dp"
-        android:src="@drawable/ic_left"
-        android:background="@drawable/circle_background"
-        android:scaleType="centerInside"
-        android:padding="12dp"
-        app:tint="?android:attr/textColorPrimary"
-        android:contentDescription="@string/cancel" />
+        android:paddingHorizontal="16dp">
 
-    <!-- Пустое состояние -->
-    <LinearLayout
-        android:id="@+id/emptyStateLayout"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
-        android:padding="32dp">
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/ic_left"
+            android:background="@drawable/circle_background"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            android:contentDescription="@string/back" />
 
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/ic_empty_transactions"
-            app:tint="?attr/colorPrimary"
-            android:alpha="0.5" />
+    </RelativeLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/no_transactions"
-            android:textSize="18sp"
-            android:textColor="?android:attr/textColorSecondary" />
-
-    </LinearLayout>
-
-</LinearLayout>
+</RelativeLayout>

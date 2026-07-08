@@ -8,14 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import ru.github.debitcredit.R
 import ru.github.debitcredit.data.model.TransactionEntity
@@ -30,18 +31,20 @@ class TransactionsFragment : Fragment() {
     private val viewModel: MainViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TransactionAdapter
-    private lateinit var searchEditText: EditText
-    private lateinit var clearSearchButton: ImageButton
+    private lateinit var searchEditText: TextInputEditText
     private lateinit var categoryFilterSpinner: Spinner
     private lateinit var dateFilterSpinner: Spinner
     private lateinit var emptyStateLayout: View
     private lateinit var backButton: ImageButton
+    private lateinit var transactionCountText: TextView
 
     private var allTransactions = listOf<TransactionEntity>()
     private var filteredTransactions = listOf<TransactionEntity>()
-    private var selectedCategory = "all"
-    private var selectedDateFilter = "all"
+    private var selectedCategoryKey = "all"
+    private var selectedDateFilterKey = "all"  // Изменено: храним ключ фильтра даты
     private var searchQuery = ""
+
+    private val categoryKeys = listOf("all") + CategoryMapper.getAllCategoryKeys()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,11 +68,11 @@ class TransactionsFragment : Fragment() {
     private fun setupViews(view: View) {
         recyclerView = view.findViewById(R.id.transactionsRecyclerView)
         searchEditText = view.findViewById(R.id.searchEditText)
-        clearSearchButton = view.findViewById(R.id.clearSearchButton)
         categoryFilterSpinner = view.findViewById(R.id.categoryFilterSpinner)
         dateFilterSpinner = view.findViewById(R.id.dateFilterSpinner)
         emptyStateLayout = view.findViewById(R.id.emptyStateLayout)
         backButton = view.findViewById(R.id.backButton)
+        transactionCountText = view.findViewById(R.id.transactionCountText)
     }
 
     private fun setupRecyclerView() {
@@ -92,40 +95,33 @@ class TransactionsFragment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {
                 searchQuery = s?.toString()?.trim() ?: ""
-                clearSearchButton.visibility = if (searchQuery.isNotEmpty()) View.VISIBLE else View.GONE
                 applyFilters()
             }
         })
-
-        clearSearchButton.setOnClickListener {
-            searchEditText.text.clear()
-            searchEditText.requestFocus()
-        }
     }
 
     private fun setupFilters() {
         // Фильтр по категориям
-        val categoryKeys = CategoryMapper.getAllCategoryKeys()
-        val categoryDisplayNames = categoryKeys.map { key ->
-            if (key == "income") {
-                getString(R.string.income_category)
-            } else {
-                CategoryMapper.getLocalizedName(requireContext(), key)
-            }
-        }
-        val categories = listOf(getString(R.string.all_categories)) + categoryDisplayNames
+        val categoryDisplayNames = listOf(getString(R.string.all_categories)) +
+                CategoryMapper.getAllCategoryKeys().map { key ->
+                    if (key == "income") {
+                        getString(R.string.income_category)
+                    } else {
+                        CategoryMapper.getLocalizedName(requireContext(), key)
+                    }
+                }
 
         val categoryAdapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
-            categories
+            categoryDisplayNames
         )
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         categoryFilterSpinner.adapter = categoryAdapter
 
         categoryFilterSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                selectedCategory = if (position == 0) "all" else categories[position]
+                selectedCategoryKey = if (position == 0) "all" else categoryKeys[position]
                 applyFilters()
             }
 
@@ -133,24 +129,26 @@ class TransactionsFragment : Fragment() {
         }
 
         // Фильтр по дате
-        val dateFilters = listOf(
+        val dateDisplayNames = listOf(
             getString(R.string.all_dates),
             getString(R.string.today),
             getString(R.string.this_week),
             getString(R.string.this_month),
             getString(R.string.this_year)
         )
+
         val dateAdapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
-            dateFilters
+            dateDisplayNames
         )
         dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         dateFilterSpinner.adapter = dateAdapter
 
         dateFilterSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                selectedDateFilter = when (position) {
+                // Сохраняем ключ фильтра, а не отображаемое имя
+                selectedDateFilterKey = when (position) {
                     0 -> "all"
                     1 -> "today"
                     2 -> "week"
@@ -189,17 +187,19 @@ class TransactionsFragment : Fragment() {
             }
 
             // Фильтр по категории
-            val categoryDisplayName = CategoryMapper.getLocalizedName(requireContext(), transaction.categoryName)
-            val matchesCategory = selectedCategory == getString(R.string.all_categories) ||
-                    categoryDisplayName == selectedCategory
+            val matchesCategory = if (selectedCategoryKey == "all") {
+                true
+            } else {
+                transaction.categoryName == selectedCategoryKey
+            }
 
-            // Фильтр по дате
-            val matchesDate = when (selectedDateFilter) {
-                getString(R.string.today) -> isToday(transaction.date)
-                getString(R.string.this_week) -> isThisWeek(transaction.date)
-                getString(R.string.this_month) -> isThisMonth(transaction.date)
-                getString(R.string.this_year) -> isThisYear(transaction.date)
-                else -> true
+            // Фильтр по дате - используем ключ
+            val matchesDate = when (selectedDateFilterKey) {
+                "today" -> isToday(transaction.date)
+                "week" -> isThisWeek(transaction.date)
+                "month" -> isThisMonth(transaction.date)
+                "year" -> isThisYear(transaction.date)
+                else -> true  // "all" или любое другое значение
             }
 
             matchesSearch && matchesCategory && matchesDate
@@ -207,6 +207,7 @@ class TransactionsFragment : Fragment() {
 
         adapter.submitList(filteredTransactions)
         updateEmptyState()
+        updateTransactionCount()
     }
 
     private fun isToday(date: Long): Boolean {
@@ -263,6 +264,16 @@ class TransactionsFragment : Fragment() {
             emptyStateLayout.visibility = View.GONE
             recyclerView.visibility = View.VISIBLE
         }
+    }
+
+    private fun updateTransactionCount() {
+        val count = filteredTransactions.size
+        val countText = resources.getQuantityString(
+            R.plurals.transactions_count,
+            count,
+            count
+        )
+        transactionCountText.text = countText
     }
 
     private fun setupBackButton() {
