@@ -12,10 +12,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import ru.github.debitcredit.R
 import ru.github.debitcredit.customview.StatsView
 import ru.github.debitcredit.data.model.CategoryEntity
@@ -39,6 +42,7 @@ class MainFragment : Fragment() {
     private lateinit var balanceTextView: TextView
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
+    private var isIconsFixed = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -86,7 +90,6 @@ class MainFragment : Fragment() {
         statsView = view.findViewById(R.id.statsView)
         categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView)
 
-        // Инициализируем все кнопки
         transactionsButton = view.findViewById(R.id.transactionsButton)
         addCategoryButton = view.findViewById(R.id.addCategoryButton)
         incomeButton = view.findViewById(R.id.incomeButton)
@@ -166,10 +169,43 @@ class MainFragment : Fragment() {
                     categoryAdapter.submitList(categories)
                     updateStatsView(state.data.categories)
                     updateBalance(state.data.balance)
+
+                    // Проверяем и исправляем иконки (только один раз)
+                    if (!isIconsFixed) {
+                        fixCategoryIcons(state.data.categories)
+                    }
                 }
                 is UiState.Error -> {
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
                 }
+            }
+        }
+    }
+
+    private fun fixCategoryIcons(categories: List<Category>) {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                var needUpdate = false
+                categories.forEach { category ->
+                    val correctIconRes = CategoryMapper.getIconRes(category.name)
+                    if (category.iconRes != correctIconRes) {
+                        // Используем метод ViewModel для обновления иконки
+                        viewModel.updateCategoryIcon(category.id, correctIconRes)
+                        needUpdate = true
+                        android.util.Log.d("MainFragment", "Updating icon for: ${category.name}")
+                    }
+                }
+
+                if (needUpdate) {
+                    isIconsFixed = true
+                    android.util.Log.d("MainFragment", "All icons updated")
+                    // Обновляем UI после небольшой задержки
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                        viewModel.refreshData()
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainFragment", "Error fixing icons", e)
             }
         }
     }
@@ -239,12 +275,10 @@ class MainFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // Кнопка "Все транзакции"
         transactionsButton.setOnClickListener {
             findNavController().navigate(R.id.transactionsFragment)
         }
 
-        // Кнопка "Доход"
         incomeButton.setOnClickListener {
             val bundle = Bundle().apply {
                 putBoolean("is_income_mode", true)
@@ -257,7 +291,6 @@ class MainFragment : Fragment() {
             findNavController().navigate(R.id.categoryEditFragment, bundle)
         }
 
-        // Кнопка "Добавить категорию"
         addCategoryButton.setOnClickListener {
             findNavController().navigate(R.id.selectCategoryFragment)
         }

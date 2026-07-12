@@ -86,6 +86,10 @@ class CategoryEditFragment : Fragment() {
         amountEditText = view.findViewById(R.id.amountEditText)
         amountEditText.setText("")
         amountEditText.hint = getString(R.string.add_amount)
+        // постоянно блый цвет вносимой суммы
+        amountEditText.setTextColor(Color.WHITE)
+        // полупрозрачный цвет подсказки
+        amountEditText.setHintTextColor(Color.argb(180, 255, 255, 255))
 
         // Обработка клика по полю ввода - переключаем клавиатуру
         amountEditText.setOnClickListener {

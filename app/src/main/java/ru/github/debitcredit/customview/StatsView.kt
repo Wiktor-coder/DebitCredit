@@ -7,6 +7,7 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
+import ru.github.debitcredit.R
 import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.min
