@@ -30,9 +30,10 @@ class DebitCreditApplication : Application() {
             // Проверяем обновления в фоновом потоке
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    // Проверка обновлений
                     UpdateChecker.checkForUpdates(this@DebitCreditApplication)
                 } catch (e: Exception) {
-                    Log.d("Application", "Update check skipped: ${e.message}")
+                    Log.d("Application", "Background init error: ${e.message}")
                 }
             }
 
