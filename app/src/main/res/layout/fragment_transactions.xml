@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:background="?attr/colorSurface"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
     <!-- Основной контент -->
     <LinearLayout
@@ -162,26 +173,22 @@
 
     </LinearLayout>
 
-    <!-- Контейнер для кнопки назад - всегда внизу -->
-    <RelativeLayout
-        android:id="@+id/backButtonContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Кнопка назад -->
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_marginBottom="24dp"
-        android:paddingHorizontal="16dp">
+        android:src="@drawable/ic_left"
+        android:background="@drawable/circle_background"
+        android:scaleType="centerInside"
+        android:padding="12dp"
+        app:tint="?android:attr/textColorPrimary"
+        android:contentDescription="@string/cancel"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-        <ImageButton
-            android:id="@+id/backButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_centerHorizontal="true"
-            android:src="@drawable/ic_left"
-            android:background="@drawable/circle_background"
-            android:scaleType="centerInside"
-            android:padding="12dp"
-            android:contentDescription="@string/back" />
-
-    </RelativeLayout>
-
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

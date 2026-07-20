@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DebitCredit</string>
+    <string name="app_name">Учёт Финансов</string>
 
     <!-- Общие строки -->
     <string name="settings">Настройки</string>
@@ -95,6 +95,6 @@
     </plurals>
 
     <!-- О приложении -->
-    <string name="app_description">DebitCredit\nВерсия 1.0\n\nПриложение для учёта доходов и расходов</string>
+    <string name="app_description">Учёт Финансов\nВерсия 1.1.2\n\nПриложение для учёта доходов и расходов</string>
     <string name="Migrate_transaction_times">Мигрировать времена транзакций</string>
 </resources>
