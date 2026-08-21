@@ -16,7 +16,6 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.AndroidEntryPoint
 import ru.github.debitcredit.R
 import java.util.Locale
@@ -84,7 +83,14 @@ class MainActivity : AppCompatActivity() {
         toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_settings -> {
-                    navController.navigate(R.id.settingsFragment)
+                    // ✅ Проверяем, открыт ли уже фрагмент настроек
+                    if (navController.currentDestination?.id == R.id.settingsFragment) {
+                        // Если уже открыт - просто закрываем (возвращаемся назад)
+                        navController.popBackStack()
+                    } else {
+                        // Иначе открываем
+                        navController.navigate(R.id.settingsFragment)
+                    }
                     true
                 }
                 else -> false
@@ -101,7 +107,14 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_settings -> {
-                navController.navigate(R.id.settingsFragment)
+                // ✅ Проверяем, открыт ли уже фрагмент настроек
+                if (navController.currentDestination?.id == R.id.settingsFragment) {
+                    // Если уже открыт - просто закрываем (возвращаемся назад)
+                    navController.popBackStack()
+                } else {
+                    // Иначе открываем
+                    navController.navigate(R.id.settingsFragment)
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)

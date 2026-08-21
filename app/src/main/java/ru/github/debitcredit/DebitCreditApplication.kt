@@ -36,11 +36,11 @@ class DebitCreditApplication : Application() {
                     Log.d("Application", "Background init error: ${e.message}")
                 }
             }
-
-            CoroutineScope(Dispatchers.IO).launch {
-//                kotlinx.coroutines.delay(3000)
-                NotificationHelper.showAppreciationNotification(this@DebitCreditApplication)
-            }
+            // Пуш при входе
+//            CoroutineScope(Dispatchers.IO).launch {
+////                kotlinx.coroutines.delay(3000)
+//                NotificationHelper.showAppreciationNotification(this@DebitCreditApplication)
+//            }
 
         } catch (e: Exception) {
             Log.e("Application", "Error in onCreate", e)

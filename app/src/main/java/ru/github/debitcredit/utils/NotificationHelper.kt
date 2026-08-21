@@ -12,7 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import ru.github.debitcredit.R
 import ru.github.debitcredit.presentation.ui.MainActivity
-
+// Уведомления при входе
 object NotificationHelper {
 
     private const val CHANNEL_ID = "app_notifications"

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DebitCredit</string>
+    <string name="app_name">Accounting for Finances</string>
 
     <!-- Common strings -->
     <string name="settings">Settings</string>
@@ -86,6 +86,12 @@
     <string name="income_category">Income</string>
     <string name="date">Date</string>
 
+    <!-- Support -->
+    <string name="support_url">https://pay.cloudtips.ru/p/29e9b5ab</string>
+    <string name="support_title">Support the project</string>
+    <string name="support_description">If you like the app, you can support its development. Any amount will help dedicate more time to the project ❤️</string>
+    <string name="support_button">☕ Support</string>
+
     <!-- Transaction count -->
     <plurals name="transactions_count">
         <item quantity="zero">No transactions</item>
@@ -94,5 +100,5 @@
     </plurals>
 
     <!-- About -->
-    <string name="app_description">DebitCredit\nVersion 1.0\n\nApp for income and expense tracking</string>
+    <string name="app_description">DebitCredit\nVersion 1.1.2\n\nApp for income and expense tracking</string>
 </resources>

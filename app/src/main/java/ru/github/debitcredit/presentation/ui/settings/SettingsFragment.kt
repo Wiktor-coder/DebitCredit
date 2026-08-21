@@ -1,5 +1,7 @@
 package ru.github.debitcredit.presentation.ui.settings
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -35,6 +38,7 @@ class SettingsFragment : Fragment() {
     private lateinit var backButton: ImageButton
     private lateinit var currencyRateTextView: TextView
     private lateinit var timezoneSpinner: Spinner
+    private lateinit var supportButton: MaterialButton
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,12 +62,14 @@ class SettingsFragment : Fragment() {
         backButton = view.findViewById(R.id.backButton)
         currencyRateTextView = view.findViewById(R.id.currencyRateTextView)
         timezoneSpinner = view.findViewById(R.id.timezoneSpinner)
+        supportButton = view.findViewById(R.id.supportButton)
 
         setupBackButton()
         setupCurrencySpinner()
         setupLanguageSpinner()
         setupTimezoneSpinner()
         loadSavedSettings()
+        setupSupportButton()
 
         settingsViewModel.loadExchangeRates()
         observeExchangeRates()
@@ -71,6 +77,15 @@ class SettingsFragment : Fragment() {
         applyButton.setOnClickListener {
             saveSettings()
             applySettings()
+        }
+    }
+
+    // Метод для кнопки поддержки
+    private fun setupSupportButton() {
+        supportButton.setOnClickListener {
+            val url = getString(R.string.support_url)
+            val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+            startActivity(intent)
         }
     }
 

@@ -85,6 +85,12 @@
     <string name="date">Дата</string>
     <string name="category">Категория</string>
 
+    <!-- Поддержка проекта -->
+    <string name="support_url">https://pay.cloudtips.ru/p/29e9b5ab</string>
+    <string name="support_title">Поддержать проект</string>
+    <string name="support_description">Если вам нравится приложение, вы можете поддержать его развитие. Любая сумма поможет уделять проекту больше времени ❤️</string>
+    <string name="support_button">☕ Поддержать</string>
+
     <!-- Для счётчика транзакций -->
     <plurals name="transactions_count">
         <item quantity="zero">Нет транзакций</item>
